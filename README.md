@@ -62,6 +62,8 @@ Pingora/
 ## ✨ Key Features
 
 - **Premium Real-time Messaging**: Instant message delivery with WebSocket persistence and delivery acknowledgments.
+- **Audio/Video Calls (WebRTC)**: Peer-to-peer secure calling integrated directly into the chat interface.
+- **Message Security**: Database-level text encryption ensures message content remains secure at rest.
 - **Advanced Privacy Controls**: 
   - **Disappearing Messages**: Customizable timers for self-destructing chats.
   - **Granular Visibility**: Toggle visibility for Last Seen, Profile Photo, and "About" info.
@@ -117,7 +119,9 @@ Ensure your `.env` files in the respective service directories contain the follo
 | | `DATABASE_URL`| Postgres connection string | `postgres://...` |
 | | `JWT_SECRET` | Secret for token signing | `your_secret` |
 | **Chat Service** | `PORT` | API Port | `8000` |
-| | `MONGO_URI` | MongoDB connection string| `mongodb://mongo:27017/chat`|
+| | `MONGODB_URL` | MongoDB connection string| `mongodb://mongo:27017`|
+| | `ENCRYPTION_KEY` | Key for message text encryption| `(Required)` |
+| | `PYTHONUNBUFFERED` | Docker logging config | `1` |
 
 ## 🔗 API Endpoints
 

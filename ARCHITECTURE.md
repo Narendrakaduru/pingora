@@ -26,7 +26,7 @@ graph TB
     MOBILE -- "REST/JSON" --> US
     MOBILE -- "WS/Socket.io" --> CS
 
-    CS -- "gRPC/Internal REST" --> US
+    CS -- "Internal REST (HTTP)" --> US
     
     US -- "Persistence" --> MYSQL
     CS -- "Persistence" --> MONGO
@@ -50,6 +50,12 @@ sequenceDiagram
         Middleware-->>Client: 401 Unauthorized
     else Authorized
         Middleware->>Logic: Process Business Logic
+        
+        opt Chat Service (Inter-service)
+            Logic->>US: GET /api/auth/privacy (Check Friendship/Block)
+            US-->>Logic: Privacy Context
+        end
+
         Logic->>DB: Query/Persist Data
         DB-->>Logic: Result
         Logic-->>API: Response Data
@@ -101,6 +107,23 @@ erDiagram
         json metadata
         int disappearing_time
     }
+
+    USER_SETTINGS {
+        string _id PK
+        string username FK
+        string room_id FK
+        boolean is_pinned
+        boolean is_muted
+        boolean is_archived
+        datetime last_read_timestamp
+    }
+
+    USER_PRESENCE {
+        string _id PK
+        string username FK
+        datetime last_seen
+        boolean is_online
+    }
 ```
 
 ---
@@ -135,18 +158,29 @@ graph TD
 
 ---
 
-## 5. Real-time Messaging Flow
+## 5. Real-time Messaging & WebRTC Flow
 
 ```mermaid
 flowchart TD
-    A([Sender]) --> B[WS: emit 'send_message']
-    B --> C[Chat Service]
-    C --> D{Privacy Check}
-    D -- "Query User Service" --> E{Is Friend & Not Blocked?}
-    E -- No --> F[WS: emit 'error']
-    E -- Yes --> G[Persist to MongoDB]
-    G --> H[WS: emit 'new_message' to Recipient]
-    H --> I[WS: emit 'message_ack' to Sender]
+    subgraph Messaging
+        A([Sender]) --> B[WS: emit 'send_message']
+        B --> C[Chat Service]
+        C --> D{Privacy & Block Check (via US)}
+        D -- "Blocked/Not Friend" --> F[WS: emit 'error']
+        D -- "Allowed" --> G[Encrypt & Persist to MongoDB]
+        G --> H[WS: emit 'new_message' to Room/Recipient]
+        H --> I[WS: emit 'message_ack' to Sender]
+    end
+
+    subgraph WebRTC Calls
+        W1([Caller]) --> W2[WS: emit 'call_request']
+        W2 --> W3[Chat Service Signalling]
+        W3 --> W4{Check Friendship}
+        W4 -- "Allowed" --> W5[WS: relay to Callee]
+        W5 --> W6([Callee])
+        W6 -. "webrtc_signal (SDP/ICE)" .-> W3
+        W3 -. "relay" .-> W1
+    end
 ```
 
 ---
