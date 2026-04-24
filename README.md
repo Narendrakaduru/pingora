@@ -4,27 +4,34 @@ Pingora is a premium, high-performance real-time chat application built with a *
 
 ## 🚀 Tech Stack
 
-### Frontend & Mobile
+### 🖥️ Frontend (Web)
+- **React 19 + Vite**: Modern, ultra-fast UI library with optimized production bundles.
+- **Tailwind CSS**: Utility-first styling for a premium, responsive glassmorphism aesthetic.
+- **Framer Motion**: Advanced animation engine for smooth transitions and interactive micro-interactions.
+- **Socket.io-client**: Real-time bidirectional communication for instant messaging and presence.
+- **Context API**: Clean and scalable global state management for Auth and UI preferences.
 
-- **React (Vite)**: Modern, ultra-fast UI library for the web experience.
-- **React Native (Expo)**: Cross-platform mobile development for iOS and Android.
-- **Tailwind CSS**: Utility-first CSS framework for premium, responsive design.
-- **Framer Motion**: Advanced animation library for smooth UI transitions.
-- **Socket.io Client**: Real-time bidirectional communication for instant messaging.
+### 📱 Mobile (Cross-Platform)
+- **React Native + Expo**: Single codebase for high-performance iOS and Android applications.
+- **Native Modules**: Camera and Gallery integration for sharing media and status updates.
+- **React Navigation**: Robust navigation patterns including Tab, Stack, and Drawer layouts.
+- **Shared Logic**: Reuses core API and WebSocket services from the web frontend for feature parity.
 
-### Microservices Backend
+### ⚙️ Microservices Backend
+- **User Service (Node.js/Express)**: 
+    - **Identity Provider**: Handles secure registration, login, and JWT-based session management.
+    - **Social Graph**: Manages complex friendship states, pending requests, and user blocking.
+    - **Security**: Implements Bcrypt hashing and granular middleware protection for all endpoints.
+- **Chat Service (Python/FastAPI)**:
+    - **High-Concurrency Messaging**: Leverages Python's `asyncio` for non-blocking message processing.
+    - **WebSocket Orchestration**: Centralized manager for room-based broadcasting and delivery ACKs.
+    - **Automated Tasks**: Integrated background scheduler for disappearing messages and data cleanup.
 
-- **User Service (Node.js/Express)**: Central identity provider handling JWT authentication, profiles, and friendship logic.
-- **Chat Service (Python/FastAPI)**: High-concurrency engine for WebSocket management, room logic, and message persistence.
-- **Sequelize ORM**: Promise-based Node.js ORM for MySQL data modeling.
-- **Motor**: Asynchronous Python driver for MongoDB.
-
-### Data & Infrastructure
-
-- **MySQL**: Relational database for structured user data and social graphs.
-- **MongoDB**: Document database for high-volume message storage and flexible chat settings.
-- **Redis**: In-memory data store for session management and real-time state tracking.
-- **Docker & Docker Compose**: Containerization for consistent environments and simplified orchestration.
+### 💾 Data & Infrastructure
+- **PostgreSQL**: Robust relational database for identity, social connections, and account metadata.
+- **MongoDB**: Highly scalable document store for message history, group details, and room logs.
+- **Redis**: Ultra-fast in-memory store for real-time presence tracking and socket session mapping.
+- **Docker Compose**: Orchestrates isolated networks and persistent volumes across the entire stack.
 
 ## 📁 Directory Structure
 
@@ -108,7 +115,7 @@ Ensure your `.env` files in the respective service directories contain the follo
 | Service | Variable | Description | Default |
 |---|---|---|---|
 | **User Service** | `PORT` | API Port | `5001` |
-| | `MYSQL_HOST` | Database host | `mysql` |
+| | `DATABASE_URL`| Postgres connection string | `postgres://...` |
 | | `JWT_SECRET` | Secret for token signing | `your_secret` |
 | **Chat Service** | `PORT` | API Port | `8000` |
 | | `MONGO_URI` | MongoDB connection string| `mongodb://mongo:27017/chat`|
