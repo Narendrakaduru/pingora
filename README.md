@@ -30,7 +30,6 @@ Pingora is a premium, high-performance real-time chat application built with a *
 ### 💾 Data & Infrastructure
 - **PostgreSQL**: Robust relational database for identity, social connections, and account metadata.
 - **MongoDB**: Highly scalable document store for message history, group details, and room logs.
-- **Redis**: Ultra-fast in-memory store for real-time presence tracking and socket session mapping.
 - **Docker Compose**: Orchestrates isolated networks and persistent volumes across the entire stack.
 
 ## 📁 Directory Structure
@@ -119,7 +118,6 @@ Ensure your `.env` files in the respective service directories contain the follo
 | | `JWT_SECRET` | Secret for token signing | `your_secret` |
 | **Chat Service** | `PORT` | API Port | `8000` |
 | | `MONGO_URI` | MongoDB connection string| `mongodb://mongo:27017/chat`|
-| | `REDIS_URL` | Redis endpoint | `redis://redis:6379` |
 
 ## 🔗 API Endpoints
 

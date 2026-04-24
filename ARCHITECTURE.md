@@ -19,7 +19,6 @@ graph TB
     subgraph DataTier["💾 Data Tier"]
         MYSQL[("MySQL (Identity/Social)")]
         MONGO[("MongoDB (Messaging)")]
-        REDIS[("Redis (Real-time State)")]
     end
 
     WEB -- "REST/JSON" --> US
@@ -31,7 +30,6 @@ graph TB
     
     US -- "Persistence" --> MYSQL
     CS -- "Persistence" --> MONGO
-    CS -- "State/Cache" --> REDIS
 ```
 
 ---
