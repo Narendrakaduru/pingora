@@ -27,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 # Create uploads directory
 UPLOAD_DIR = "/app/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/api/chat/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,10 +37,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register all extracted routers
-app.include_router(messages.router)
-app.include_router(schedules.router)
-app.include_router(groups.router)
-app.include_router(rooms.router)
-app.include_router(ws.router)
-app.include_router(settings.router)
+# Register all extracted routers with /api/chat prefix
+app.include_router(messages.router, prefix="/api/chat")
+app.include_router(schedules.router, prefix="/api/chat")
+app.include_router(groups.router, prefix="/api/chat")
+app.include_router(rooms.router, prefix="/api/chat")
+app.include_router(ws.router, prefix="/api/chat")
+app.include_router(settings.router, prefix="/api/chat")

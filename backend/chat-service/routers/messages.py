@@ -19,14 +19,25 @@ CATEGORY_MAP = {
 
 @router.get("/messages", response_model=List[dict])
 async def get_messages(room: str = "general-chat"):
-    # Sort by timestamp DESC (-1) and take 100 to get the NEWEST ones
-    messages = await db.messages.find({"room": room}).sort("timestamp", -1).to_list(100)
-    for msg in messages:
+    # 1. Fetch newest 100 messages
+    latest_messages = await db.messages.find({"room": room}).sort("timestamp", -1).to_list(100)
+    
+    # 2. Fetch ALL pinned messages in this room (to ensure they are available for the pinned messages bar)
+    pinned_messages = await db.messages.find({"room": room, "is_pinned": True}).to_list(50)
+    
+    # 3. Merge and deduplicate
+    unique_messages = {str(m["_id"]): m for m in (latest_messages + pinned_messages)}
+    merged = list(unique_messages.values())
+    
+    # Sort by timestamp ASC for the UI
+    merged.sort(key=lambda x: x.get("timestamp", ""))
+
+    for msg in merged:
         msg["_id"] = str(msg["_id"])
         if "text" in msg:
-            msg["text"] = decrypt_text(msg["text"])
-    # Return in ASC order (oldest first) for the UI
-    return messages[::-1]
+            msg["text"] = decrypt_text(msg.get("text", ""))
+            
+    return merged
 
 @router.post("/upload")
 async def upload_file(

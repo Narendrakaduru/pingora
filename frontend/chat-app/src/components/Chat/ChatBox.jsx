@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Search, Image, Camera, Mic, BarChart3, Paperclip, Phone, PhoneOff,
@@ -23,8 +23,7 @@ import SelectionActionBar from './window/SelectionActionBar';
 import QuickActionsDash from './window/QuickActionsDash';
 import ViewManager from './window/ViewManager';
 import CallUIManager from './window/CallUIManager';
-
-// Modals
+import PinnedMessagesBar from './window/PinnedMessagesBar';
 import CameraModal from './modals/CameraModal';
 import ModalsManager from './modals/ModalsManager';
 import GroupMembersPanel from '../Groups/GroupMembersPanel';
@@ -79,6 +78,7 @@ const ChatBox = () => {
   const [showPollModal, setShowPollModal] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
+  const [allowMultiple, setAllowMultiple] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [showDisappearingModal, setShowDisappearingModal] = useState(false);
   const [forwardingMessage, setForwardingMessage] = useState(null);
@@ -104,6 +104,7 @@ const ChatBox = () => {
   const [chatContextMenu, setChatContextMenu] = useState({ visible: false, x: 0, y: 0, chat: null, type: null });
   const [listModal, setListModal] = useState({ visible: false, roomId: null, currentLabels: [] });
   const [selectedGroupForInfo, setSelectedGroupForInfo] = useState(null);
+  const [selectedPollForVotes, setSelectedPollForVotes] = useState(null);
 
   // ─── 3. Helpers (defined BEFORE hooks that need them) ────────
   const showToast = useCallback((message, type = 'success') => {
@@ -230,6 +231,10 @@ const ChatBox = () => {
       }
     }
   }, [messages, typingCount, activeView, roomIdForScroll, scrollToBottom]);
+
+  const pinnedMessages = useMemo(() => {
+    return messages.filter(m => m.is_pinned).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  }, [messages]);
 
   // ─── Bulk Action Handlers ──────────────────────────────────
   const handleBulkCopy = () => {
@@ -645,7 +650,31 @@ const ChatBox = () => {
           wsRef.current?.send(JSON.stringify({ type: 'star_message', room: rId, message_id: msg._id || msg.id }));
           break;
         case 'pin':
-          wsRef.current?.send(JSON.stringify({ type: 'pin_message', room: rId, message_id: msg._id || msg.id }));
+          const pinnedCount = pinnedMessages.length;
+          const limit = user.accountType === 'pro' ? 20 : 3;
+          
+          if (!msg.is_pinned && pinnedCount >= limit) {
+             setConfirmModal({
+               visible: true,
+               title: 'Pin Limit Reached',
+               message: `You can only pin up to ${limit} messages. Would you like to replace the oldest pin?`,
+               onConfirm: () => {
+                 setConfirmModal(prev => ({ ...prev, visible: false }));
+                 wsRef.current?.send(JSON.stringify({ 
+                   type: 'pin_message', 
+                   room: rId, 
+                   message_id: msg._id || msg.id,
+                   replace_oldest: true 
+                 }));
+               }
+             });
+          } else {
+             wsRef.current?.send(JSON.stringify({ 
+               type: 'pin_message', 
+               room: rId, 
+               message_id: msg._id || msg.id 
+             }));
+          }
           break;
         case 'edit':
           setEditingMessage(msg);
@@ -694,9 +723,10 @@ const ChatBox = () => {
 
   const handleCreatePoll = () => {
     if (pollQuestion && pollOptions.filter(o => o.trim()).length >= 2) {
-      createPoll(pollQuestion, pollOptions);
+      createPoll(pollQuestion, pollOptions, allowMultiple);
       setPollQuestion('');
       setPollOptions(['', '']);
+      setAllowMultiple(false);
       setShowPollModal(false);
     }
   };
@@ -755,6 +785,11 @@ const ChatBox = () => {
                 onShowGroupInfo={(g) => setSelectedGroupForInfo(g)}
                 isFriend={isFriend}
                 friendship={friendship}
+              />
+              
+              <PinnedMessagesBar 
+                pinnedMessages={pinnedMessages} 
+                onScrollToMessage={scrollToMessage} 
               />
 
               <AnimatePresence>
@@ -890,6 +925,8 @@ const ChatBox = () => {
                 handleScroll={handleScroll} scrollToBottom={scrollToBottom}
                 showScrollBottom={showScrollBottom} dmPartners={dmPartners}
                 onlineUsers={onlineUsers} lastSeenMap={lastSeenMap}
+                setSelectedPollForVotes={setSelectedPollForVotes}
+                showToast={showToast}
               />
 
               <AnimatePresence mode="wait">
@@ -963,6 +1000,7 @@ const ChatBox = () => {
         showPollModal={showPollModal} setShowPollModal={setShowPollModal}
         pollQuestion={pollQuestion} setPollQuestion={setPollQuestion}
         pollOptions={pollOptions} setPollOptions={setPollOptions}
+        allowMultiple={allowMultiple} setAllowMultiple={setAllowMultiple}
         showDisappearingModal={showDisappearingModal} setShowDisappearingModal={setShowDisappearingModal}
         forwardingMessage={forwardingMessage} setForwardingMessage={setForwardingMessage}
         confirmModal={confirmModal} setConfirmModal={setConfirmModal}
@@ -976,6 +1014,7 @@ const ChatBox = () => {
         fullScreenImage={fullScreenImage} setFullScreenImage={setFullScreenImage}
         msgContextMenu={msgContextMenu} setMsgContextMenu={setMsgContextMenu}
         chatContextMenu={chatContextMenu} setChatContextMenu={setChatContextMenu}
+        selectedPollForVotes={selectedPollForVotes} setSelectedPollForVotes={setSelectedPollForVotes}
         toast={toast}
         user={user} onlineUsers={onlineUsers} allUsers={allUsers} 
         dmPartners={dmPartners} userGroups={userGroups} 

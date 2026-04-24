@@ -35,7 +35,9 @@ const MessageList = ({
   showScrollBottom,
   dmPartners,
   onlineUsers,
-  lastSeenMap
+  lastSeenMap,
+  setSelectedPollForVotes,
+  showToast
 }) => {
   const roomId = getRoomId(selectedChat, user.username);
   const currentPartnerName = typeof selectedChat === 'string' ? selectedChat : (selectedChat?.username || null);
@@ -43,16 +45,24 @@ const MessageList = ({
   const currentPartnerSettings = currentPartner?.settings || {};
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative">
+    <div 
+      className="flex-1 flex flex-col min-h-0 relative overflow-hidden"
+      style={{ 
+        backgroundColor: settings?.wallpaper && settings.wallpaper !== 'default' && !settings.wallpaper.includes('://') && !settings.wallpaper.startsWith('data:') ? settings.wallpaper : undefined,
+        backgroundImage: settings?.wallpaper && (settings.wallpaper.includes('://') || settings.wallpaper.startsWith('data:')) 
+          ? `url(${settings.wallpaper})` 
+          : (!settings?.wallpaper || settings.wallpaper === 'default' 
+             ? 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.02) 1px, transparent 0)' 
+             : 'none'),
+        backgroundSize: settings?.wallpaper && (settings.wallpaper.includes('://') || settings.wallpaper.startsWith('data:')) ? 'cover' : '24px 24px',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        style={{ 
-          backgroundColor: settings?.wallpaper && settings.wallpaper !== 'default' ? settings.wallpaper : undefined,
-          backgroundImage: !settings?.wallpaper || settings.wallpaper === 'default' ? 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.02) 1px, transparent 0)' : 'none',
-          backgroundSize: '24px 24px'
-        }}
-        className="flex-1 overflow-y-auto py-4 px-4 md:py-6 md:px-6 space-y-4 bg-surface scroll-smooth relative"
+        className="flex-1 overflow-y-auto py-4 px-4 md:py-6 md:px-6 space-y-4 scroll-smooth relative bg-transparent"
       >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full opacity-40">
@@ -88,6 +98,8 @@ const MessageList = ({
               messageSelectionMode={messageSelectionMode}
               selectedMessages={selectedMessages}
               setSelectedMessages={setSelectedMessages}
+              setSelectedPollForVotes={setSelectedPollForVotes}
+              showToast={showToast}
             />
           ))}
         </AnimatePresence>

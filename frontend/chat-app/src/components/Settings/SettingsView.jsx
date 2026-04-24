@@ -5,7 +5,7 @@ import {
   ChevronRight, Laptop, Monitor, Speaker, Camera, Mic, Check, Moon, Sun, 
   Wallpaper, Palette, Volume2, Globe, Shield, CreditCard, UserX, Clock, 
   ExternalLink, Mail, Info, RefreshCw, Smartphone, Trash2, UserPlus, X,
-  ArrowLeft, Search, FileText, MapPin
+  ArrowLeft, Search, FileText, MapPin, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -15,7 +15,7 @@ import ConfirmModal from '../Chat/modals/ConfirmModal';
 const USER_API = '/api/auth';
 
 const SettingsView = ({ onBack, allUsers = [] }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, toggleProStatus } = useAuth();
   const { settings, updateSettings, blockContact, unblockContact, togglePrivacyUser } = useSettings();
   const [activeCategory, setActiveCategory] = useState('account');
   const [devices, setDevices] = useState({ video: [], audio: [] });
@@ -219,6 +219,38 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                   <p className="text-sm text-text-soft">{user.email || 'No email provided'}</p>
                 </div>
               </div>
+              
+              {/* Upgrade to Pro Section */}
+              <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-primary via-primary-dim to-primary/80 text-white shadow-premium relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                  <ShieldCheck size={120} />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck size={20} className="text-white" />
+                    <span className="text-xs font-black uppercase tracking-[0.2em]">Pingora Premium</span>
+                  </div>
+                  
+                  <h4 className="text-2xl font-black mb-2 tracking-tight">
+                    {user.accountType === 'pro' ? 'You are a Pro User!' : 'Upgrade to Pro Account'}
+                  </h4>
+                  
+                  <p className="text-sm font-medium text-white/80 mb-6 max-w-[80%] leading-relaxed">
+                    {user.accountType === 'pro' 
+                      ? 'Enjoy your premium features including detailed poll analytics and exclusive badges.' 
+                      : 'Unlock advanced poll analytics, profile badges, and high-speed media sharing.'}
+                  </p>
+
+                  <button 
+                    onClick={() => toggleProStatus()}
+                    className="px-6 py-3 bg-white text-primary rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
+                  >
+                    {user.accountType === 'pro' ? 'Switch to Normal' : 'Get Pro Now'}
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <button 
                   onClick={() => setSubView('security_notifications')}
@@ -563,6 +595,89 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
         );
 
       case 'chats':
+        if (subView === 'wallpaper') {
+          const WALLPAPER_OPTIONS = [
+            { id: 'default', name: 'Default Pattern', type: 'pattern', value: 'default' },
+            { id: 'slate', name: 'Dark Slate', type: 'color', value: '#1e293b' },
+            { id: 'blue', name: 'Soft Blue', type: 'color', value: '#e0f2fe' },
+            { id: 'rose', name: 'Rose', type: 'color', value: '#fff1f2' },
+            { id: 'emerald', name: 'Emerald', type: 'color', value: '#ecfdf5' },
+            { id: 'midnight', name: 'Midnight', type: 'color', value: '#0f172a' },
+            { id: 'whatsapp_light', name: 'WhatsApp Light', type: 'color', value: '#e5ddd5' },
+            { id: 'whatsapp_dark', name: 'WhatsApp Dark', type: 'color', value: '#0b141a' },
+          ];
+
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setSubView(null)} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">Chat Wallpaper</h3>
+              </div>
+
+              <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {WALLPAPER_OPTIONS.map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => updateSettings('wallpaper', opt.value)}
+                      className={`relative aspect-[9/16] rounded-2xl overflow-hidden border-4 transition-all ${settings.wallpaper === opt.value ? 'border-primary shadow-lg scale-105' : 'border-transparent hover:border-border/50 hover:scale-[1.02]'}`}
+                    >
+                      {opt.type === 'pattern' ? (
+                        <div className="w-full h-full bg-surface-high flex flex-col items-center justify-center gap-2">
+                           <div className="w-full h-full opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.5) 1px, transparent 0)', backgroundSize: '12px 12px' }} />
+                           <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                             <Wallpaper size={24} className="text-text-light mb-2" />
+                             <span className="text-[10px] font-bold text-text-soft uppercase text-center">{opt.name}</span>
+                           </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-end p-3" style={{ backgroundColor: opt.value }}>
+                          <span className={`text-[10px] font-bold uppercase ${['#e0f2fe', '#fff1f2', '#ecfdf5', '#fffbeb', '#e5ddd5'].includes(opt.value) ? 'text-slate-800' : 'text-white/80'}`}>{opt.name}</span>
+                        </div>
+                      )}
+                      {settings.wallpaper === opt.value && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-md">
+                          <Check size={14} />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-4 border-t border-border/50">
+                  <p className="text-[10px] font-black uppercase text-text-light tracking-[0.2em] mb-4">Custom Image URL</p>
+                  <div className="flex gap-3">
+                    <input 
+                      type="text"
+                      placeholder="Paste image URL (http://... or data:...)"
+                      defaultValue={settings.wallpaper?.includes('://') ? settings.wallpaper : ''}
+                      onBlur={(e) => {
+                        if (e.target.value.trim()) {
+                          updateSettings('wallpaper', e.target.value.trim());
+                        }
+                      }}
+                      className="flex-1 h-12 bg-surface-low rounded-xl px-4 text-sm font-medium outline-none border border-transparent focus:border-primary/30 transition-all"
+                    />
+                    <button 
+                      className="px-6 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all"
+                      onClick={(e) => {
+                        const input = e.currentTarget.previousSibling;
+                        if (input.value.trim()) {
+                          updateSettings('wallpaper', input.value.trim());
+                        }
+                      }}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
         if (subView === 'media_quality') {
           return (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
@@ -614,14 +729,24 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                   <ChevronRight size={18} className="text-text-light opacity-40 group-hover:translate-x-1 transition-all" />
                 </div>
 
-                <div className="flex items-center justify-between group cursor-pointer" onClick={() => {/* Open Wallpaper Subview if needed */}}>
+                <div className="flex items-center justify-between group cursor-pointer" onClick={() => setSubView('wallpaper')}>
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center text-primary">
-                      <Wallpaper size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-surface-low flex items-center justify-center text-primary overflow-hidden relative">
+                      {settings.wallpaper !== 'default' ? (
+                        <div className="absolute inset-0" style={{ 
+                          backgroundColor: !settings.wallpaper?.includes('://') ? settings.wallpaper : undefined,
+                          backgroundImage: settings.wallpaper?.includes('://') ? `url(${settings.wallpaper})` : 'none',
+                          backgroundSize: 'cover',
+                          opacity: 0.2
+                        }} />
+                      ) : null}
+                      <Wallpaper size={20} className="relative z-10" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-text-main">Wallpaper</p>
-                      <p className="text-[10px] text-text-soft font-medium uppercase tracking-widest">Custom background</p>
+                      <p className="text-[10px] text-text-soft font-medium uppercase tracking-widest">
+                        {settings.wallpaper === 'default' ? 'Default' : (settings.wallpaper?.includes('://') ? 'Custom Image' : 'Solid Color')}
+                      </p>
                     </div>
                   </div>
                   <ChevronRight size={18} className="text-text-light opacity-40 group-hover:translate-x-1 transition-all" />
@@ -907,7 +1032,11 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                    {user.username?.[0].toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                   <p className="text-[10px] font-black uppercase text-text-light tracking-widest leading-none mb-1">PRO ACCOUNT</p>
+                   {user.accountType === 'pro' ? (
+                     <span className="inline-block px-1.5 py-0.5 rounded-md bg-yellow-400 text-yellow-900 text-[9px] font-black uppercase tracking-widest leading-none mb-1">PRO ACCOUNT</span>
+                   ) : (
+                     <p className="text-[10px] font-black uppercase text-text-light tracking-widest leading-none mb-1">Normal Account</p>
+                   )}
                    <h4 className="text-sm font-bold text-text-main truncate">@{user.username}</h4>
                 </div>
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]" />

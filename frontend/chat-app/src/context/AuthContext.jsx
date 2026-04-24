@@ -65,8 +65,19 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const toggleProStatus = async () => {
+    const token = localStorage.getItem('token');
+    const res = await axios.post(`/api/auth/toggle-pro`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.data.success) {
+      setUser(prev => ({ ...prev, accountType: res.data.accountType }));
+    }
+    return res.data;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, toggleProStatus, loading }}>
       {children}
     </AuthContext.Provider>
   );

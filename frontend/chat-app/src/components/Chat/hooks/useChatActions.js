@@ -167,7 +167,7 @@ export const useChatActions = ({
     }
   }, [selectedChat, user.username, wsRef]);
 
-  const createPoll = useCallback((question, options) => {
+  const createPoll = useCallback((question, options, allowMultiple = false) => {
     const currentRoomId = getRoomId(selectedChat, user.username);
     if (wsRef.current?.readyState === 1) {
       wsRef.current.send(JSON.stringify({
@@ -178,7 +178,8 @@ export const useChatActions = ({
         text: question,
         metadata: {
           question: question,
-          options: options.filter(o => o.trim()).map(o => ({ text: o, votes: [] }))
+          options: options.filter(o => o.trim()).map(o => ({ text: o, votes: [] })),
+          allow_multiple: allowMultiple
         }
       }));
       showToast('Poll created');

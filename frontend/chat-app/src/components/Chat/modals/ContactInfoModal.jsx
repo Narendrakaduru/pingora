@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Video, Phone, ChevronRight, Image as ImageIcon, Link as LinkIcon, FileText, ChevronDown, Edit2, ArrowLeft } from 'lucide-react';
+import { X, Search, Video, Phone, ChevronRight, Image as ImageIcon, Link as LinkIcon, FileText, ChevronDown, Edit2, ArrowLeft, ShieldCheck } from 'lucide-react';
 
 
 const USER_API = `/api/auth`;
@@ -291,8 +291,13 @@ const ContactInfoModal = ({ isOpen, onClose, contact, user, onlineUsers, message
                   )}
                 </div>
                 
-                <h3 className="text-2xl font-normal text-text-main mb-1">
+                <h3 className="text-2xl font-normal text-text-main mb-1 flex items-center gap-2">
                   {contact.fullName || contact.username}
+                  {contact.accountType === 'pro' && (
+                    <span className="bg-gradient-to-r from-primary to-primary-dim text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-tighter">
+                      <ShieldCheck size={10} /> PRO
+                    </span>
+                  )}
                 </h3>
                 <p className="text-[#667781] text-lg font-normal mb-6">
                   {contact.username ? contact.username.toLowerCase() : ''}

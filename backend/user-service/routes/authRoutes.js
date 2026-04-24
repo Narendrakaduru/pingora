@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getMe, getUsers, updateProfile, forgotPassword, resetPassword, deleteAccount } = require('../controllers/authController');
+const { register, login, getMe, getUsers, updateProfile, forgotPassword, resetPassword, deleteAccount, toggleProStatus } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const fs = require('fs');
@@ -30,6 +30,7 @@ router.post('/reset-password', resetPassword);
 router.get('/me', protect, getMe);
 router.get('/users', protect, getUsers);
 router.put('/profile', protect, upload.single('profilePhoto'), updateProfile);
+router.post('/toggle-pro', protect, toggleProStatus);
 router.delete('/delete-account', protect, deleteAccount);
 
 // Friend Requests
@@ -70,6 +71,7 @@ router.get('/privacy/:username', async (req, res) => {
       exists: true,
       blockedContacts: privacy.blockedContacts || [],
       acceptRequests: privacy.acceptRequests !== false,
+      accountType: targetUser.accountType || 'normal',
       isFriend
     });
   } catch (err) {

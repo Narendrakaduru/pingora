@@ -9,6 +9,8 @@ const PollModal = ({
   setPollQuestion,
   pollOptions,
   setPollOptions,
+  allowMultiple,
+  setAllowMultiple,
   onCreatePoll
 }) => {
   if (!isOpen) return null;
@@ -79,6 +81,21 @@ const PollModal = ({
             >
               <Plus size={16} />
               <span>Add Option</span>
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button 
+              onClick={() => setAllowMultiple(!allowMultiple)}
+              className="w-full flex items-center justify-between p-4 bg-surface-low rounded-2xl border border-border/50 hover:bg-surface-high transition-all group"
+            >
+              <div className="flex flex-col items-start text-left">
+                <span className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">Allow multiple answers</span>
+                <span className="text-[10px] text-text-light font-medium mt-0.5">Users can select more than one option</span>
+              </div>
+              <div className={`w-11 h-6 rounded-full relative transition-colors duration-300 ${allowMultiple ? 'bg-primary' : 'bg-slate-300'}`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${allowMultiple ? 'left-6' : 'left-1'}`} />
+              </div>
             </button>
           </div>
         </div>

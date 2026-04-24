@@ -5,6 +5,7 @@ import { XCircle, CheckCircle2 } from 'lucide-react';
 // Modals
 import NewDMModal from './NewDMModal';
 import PollModal from './PollModal';
+import PollVotesModal from './PollVotesModal';
 import DisappearingModal from './DisappearingModal';
 import ForwardModal from './ForwardModal';
 import ConfirmModal from './ConfirmModal';
@@ -26,6 +27,7 @@ const ModalsManager = ({
   showPollModal, setShowPollModal,
   pollQuestion, setPollQuestion,
   pollOptions, setPollOptions,
+  allowMultiple, setAllowMultiple,
   showDisappearingModal, setShowDisappearingModal,
   forwardingMessage, setForwardingMessage,
   confirmModal, setConfirmModal,
@@ -39,6 +41,7 @@ const ModalsManager = ({
   fullScreenImage, setFullScreenImage,
   msgContextMenu, setMsgContextMenu,
   chatContextMenu, setChatContextMenu,
+  selectedPollForVotes, setSelectedPollForVotes,
   toast,
   
   // Data
@@ -76,7 +79,20 @@ const ModalsManager = ({
             setPollQuestion={setPollQuestion} 
             pollOptions={pollOptions} 
             setPollOptions={setPollOptions} 
+            allowMultiple={allowMultiple}
+            setAllowMultiple={setAllowMultiple}
             onCreatePoll={onCreatePoll} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedPollForVotes && (
+          <PollVotesModal 
+            isOpen={!!selectedPollForVotes} 
+            onClose={() => setSelectedPollForVotes(null)} 
+            pollMsg={selectedPollForVotes} 
+            getUser={getUser}
           />
         )}
       </AnimatePresence>

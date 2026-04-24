@@ -39,7 +39,7 @@ export const useChatSocket = ({
 
     const connectWebSocket = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      socket = new WebSocket(`${protocol}://${window.location.host}/ws/${encodeURIComponent(user.username)}`);
+      socket = new WebSocket(`${protocol}://${window.location.host}/api/chat/ws/${encodeURIComponent(user.username)}`);
       wsRef.current = socket;
 
       socket.onopen = () => {

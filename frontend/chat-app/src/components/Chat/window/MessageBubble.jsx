@@ -5,7 +5,7 @@ import {
   Calendar, FileText, Download, BarChart3, PhoneMissed, 
   PhoneOutgoing, PhoneIncoming, CornerUpLeft, Check, 
   CheckCheck, Star, Pin, Clock, Smile, Plus, Pencil, CornerUpRight,
-  Video
+  Video, Circle, CheckCircle2
 } from 'lucide-react';
 import { VoicePlayer } from '../components/VoicePlayer';
 import EmojiPicker from 'emoji-picker-react';
@@ -33,7 +33,9 @@ const MessageBubble = ({
   setFullReactionMsg,
   messageSelectionMode,
   selectedMessages,
-  setSelectedMessages
+  setSelectedMessages,
+  setSelectedPollForVotes,
+  showToast
 }) => {
   const { settings } = useSettings();
   const [isDownloaded, setIsDownloaded] = useState(false);
@@ -192,32 +194,99 @@ const MessageBubble = ({
         return <VoicePlayer url={`${API_BASE}${msg.metadata?.file_url}`} isMine={isMe} />;
 
       case 'poll':
+        const totalVotes = msg.metadata.options.reduce((s, o) => s + (o.votes?.length || 0), 0);
+        const USER_API_AUTH = '/api/auth';
+        
         return (
-          <div className="p-6 bg-surface-lowest rounded-xl shadow-soft min-w-[300px]">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary"><BarChart3 size={20} /></div>
-              <h4 className="font-bold text-text-main tracking-tight leading-snug">{msg.metadata?.question}</h4>
+          <div className="flex flex-col gap-0 bg-surface-lowest rounded-2xl shadow-premium border border-border/10 overflow-hidden min-w-[280px] max-w-[320px]">
+            {/* Poll Header */}
+            <div className="p-4 bg-surface-low/30">
+              <h4 className="font-bold text-text-main text-[15px] leading-snug tracking-tight">
+                {msg.metadata?.question}
+              </h4>
+              <p className="text-[10px] font-bold text-text-light mt-1 opacity-60">
+                {msg.metadata?.allow_multiple ? 'Select one or more!' : 'You can only pick one!'}
+              </p>
             </div>
-            <div className="space-y-2.5">
+
+            {/* Poll Options */}
+            <div className="p-2 space-y-1">
               {msg.metadata?.options?.map((opt, idx) => {
-                const totalVotes = msg.metadata.options.reduce((s, o) => s + (o.votes?.length || 0), 0);
                 const pct = totalVotes > 0 ? Math.round((opt.votes?.length || 0) / totalVotes * 100) : 0;
                 const voted = opt.votes?.includes(user.username);
+                const votesCount = opt.votes?.length || 0;
+                
                 return (
                   <button 
                     key={idx} 
                     onClick={() => votePoll(msg._id || msg.id, idx)} 
-                    className={`w-full text-left p-3.5 rounded-lg transition-all relative overflow-hidden ${voted ? 'bg-primary/10' : 'bg-surface-high hover:bg-surface-dim'}`}
+                    className="w-full text-left p-3 rounded-xl transition-all hover:bg-surface-low group/poll-opt relative overflow-hidden"
                   >
-                    <div className="absolute inset-x-0 bottom-0 h-1 bg-primary/20 transition-all origin-left" style={{transform: `scaleX(${pct / 100})` }} />
-                    <div className="relative flex items-center justify-between">
-                      <span className={`text-sm ${voted ? 'font-bold text-primary' : 'font-medium text-text-main'}`}>{opt.text}</span>
-                      <span className="text-[10px] text-text-light font-bold tracking-widest">{pct}%</span>
+                    <div className="flex items-start gap-3 relative z-10">
+                      {/* Checkbox Icon */}
+                      <div className={`mt-0.5 shrink-0 ${voted ? 'text-primary' : 'text-text-light/30'}`}>
+                        {voted ? <CheckCircle2 size={20} className="fill-primary/10" /> : <Circle size={20} />}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`text-[13px] truncate ${voted ? 'font-bold text-text-main' : 'font-medium text-text-main/80'}`}>
+                            {opt.text}
+                          </span>
+                          
+                          {/* Voter Avatars & Count */}
+                          {votesCount > 0 && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="flex items-center -space-x-1.5">
+                                    {opt.votes.slice(0, 2).map((voter) => {
+                                        const voterData = getUser(voter);
+                                        return (
+                                            <div key={voter} className="w-5 h-5 rounded-full border-2 border-white bg-slate-200 overflow-hidden">
+                                                {voterData?.profile_photo ? (
+                                                    <img src={`${USER_API_AUTH}${voterData.profile_photo}`} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-primary text-white text-[7px] font-bold">
+                                                        {voter.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                <span className="text-[11px] font-bold text-text-light">{votesCount}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="h-1.5 w-full bg-surface-high rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            className={`h-full transition-all duration-500 ${voted ? 'bg-primary' : 'bg-primary/40'}`}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </button>
                 );
               })}
             </div>
+
+            {/* View Votes Footer */}
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (user.accountType === 'pro') {
+                  setSelectedPollForVotes(msg);
+                } else {
+                  showToast("Upgrade to Pro to view detailed votes!", "info");
+                }
+              }}
+              className="w-full py-3 bg-surface-low/50 hover:bg-surface-high border-t border-border/50 text-xs font-bold text-primary transition-colors"
+            >
+              View votes
+            </button>
           </div>
         );
 

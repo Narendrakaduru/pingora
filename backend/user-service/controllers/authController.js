@@ -9,7 +9,7 @@ const register = async (req, res) => {
     // Always store username as lowercase for consistency across services
     const user = await User.create({ username: username.toLowerCase().trim(), email, password });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.status(201).json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy } });
+    res.status(201).json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -23,7 +23,7 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy } });
+    res.json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -36,7 +36,7 @@ const getMe = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'username', 'email', 'fullName', 'profilePhoto', 'about', 'privacy'],
+      attributes: ['id', 'username', 'email', 'fullName', 'profilePhoto', 'about', 'privacy', 'accountType'],
       where: {
         id: { [Op.ne]: req.user.id }
       }
@@ -92,7 +92,7 @@ const updateProfile = async (req, res) => {
     await user.save();
     console.log('UpdateProfile: Success for user', user.id);
     
-    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy } });
+    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
   } catch (err) {
     console.error('UpdateProfile Error:', err);
     res.status(500).json({ success: false, message: err.message });
@@ -192,5 +192,19 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, getUsers, updateProfile, forgotPassword, resetPassword, deleteAccount };
+const toggleProStatus = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    user.accountType = user.accountType === 'pro' ? 'normal' : 'pro';
+    await user.save();
+
+    res.json({ success: true, accountType: user.accountType });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { register, login, getMe, getUsers, updateProfile, forgotPassword, resetPassword, deleteAccount, toggleProStatus };
 

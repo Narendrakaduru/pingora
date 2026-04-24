@@ -252,17 +252,55 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif msg_type == "pin_message":
                 room = message_data.get("room")
                 msg_id = message_data.get("message_id")
+                replace_oldest = message_data.get("replace_oldest", False)
                 if not room or not msg_id: continue
+
                 target_msg = await db.messages.find_one({"_id": ObjectId(msg_id)})
-                if target_msg:
-                    new_val = not target_msg.get("is_pinned", False)
-                    await db.messages.update_one({"_id": ObjectId(msg_id)}, {"$set": {"is_pinned": new_val}})
+                if not target_msg: continue
+
+                is_currently_pinned = target_msg.get("is_pinned", False)
+                
+                if is_currently_pinned:
+                    # Unpinning
+                    await db.messages.update_one({"_id": ObjectId(msg_id)}, {"$set": {"is_pinned": False}})
+                else:
+                    # Pinning - Check Limit
+                    privacy_info = await get_user_privacy_info(username, username)
+                    acc_type = privacy_info.get("accountType", "normal")
+                    limit = 20 if acc_type == "pro" else 3
                     
-                    updated_msg = await db.messages.find_one({"_id": ObjectId(msg_id)})
-                    updated_msg["_id"] = str(updated_msg["_id"])
-                    if "text" in updated_msg:
-                        updated_msg["text"] = decrypt_text(updated_msg["text"])
-                    await manager.broadcast_to_room(room, {"type": "message_update", "data": updated_msg})
+                    pinned_count = await db.messages.count_documents({"room": room, "is_pinned": True})
+                    
+                    if pinned_count >= limit:
+                        if replace_oldest:
+                            # Find oldest pin in this room
+                            oldest_pin = await db.messages.find_one(
+                                {"room": room, "is_pinned": True},
+                                sort=[("timestamp", 1)]
+                            )
+                            if oldest_pin:
+                                await db.messages.update_one({"_id": oldest_pin["_id"]}, {"$set": {"is_pinned": False}})
+                                # Broadcast the unpin update for the oldest one
+                                oldest_pin["_id"] = str(oldest_pin["_id"])
+                                if "text" in oldest_pin: oldest_pin["text"] = decrypt_text(oldest_pin["text"])
+                                oldest_pin["is_pinned"] = False
+                                await manager.broadcast_to_room(room, {"type": "message_update", "data": oldest_pin})
+                        else:
+                            await manager.send_personal_message({
+                                "type": "error",
+                                "code": "PIN_LIMIT_REACHED",
+                                "message": f"You can only pin {limit} messages. Replace the oldest one?",
+                                "limit": limit
+                            }, username)
+                            continue
+
+                    await db.messages.update_one({"_id": ObjectId(msg_id)}, {"$set": {"is_pinned": True}})
+                
+                updated_msg = await db.messages.find_one({"_id": ObjectId(msg_id)})
+                updated_msg["_id"] = str(updated_msg["_id"])
+                if "text" in updated_msg:
+                    updated_msg["text"] = decrypt_text(updated_msg["text"])
+                await manager.broadcast_to_room(room, {"type": "message_update", "data": updated_msg})
 
             elif msg_type == "poll_vote":
                 room = message_data.get("room")
@@ -270,14 +308,35 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 msg_id = message_data["message_id"]
                 option_idx = message_data["option_index"]
                 
-                await db.messages.update_one(
-                    {"_id": ObjectId(msg_id)},
-                    {"$pull": {f"metadata.options.$[].votes": username}}
-                )
-                await db.messages.update_one(
-                    {"_id": ObjectId(msg_id)},
-                    {"$push": {f"metadata.options.{option_idx}.votes": username}}
-                )
+                # Fetch current message state
+                msg = await db.messages.find_one({"_id": ObjectId(msg_id)})
+                if not msg: continue
+                
+                allow_multiple = msg.get("metadata", {}).get("allow_multiple", False)
+                
+                if allow_multiple:
+                    # Toggle vote for this specific option
+                    current_votes = msg["metadata"]["options"][option_idx].get("votes", [])
+                    if username in current_votes:
+                        await db.messages.update_one(
+                            {"_id": ObjectId(msg_id)},
+                            {"$pull": {f"metadata.options.{option_idx}.votes": username}}
+                        )
+                    else:
+                        await db.messages.update_one(
+                            {"_id": ObjectId(msg_id)},
+                            {"$push": {f"metadata.options.{option_idx}.votes": username}}
+                        )
+                else:
+                    # Single choice: remove from all then add to selected
+                    await db.messages.update_one(
+                        {"_id": ObjectId(msg_id)},
+                        {"$pull": {f"metadata.options.$[].votes": username}}
+                    )
+                    await db.messages.update_one(
+                        {"_id": ObjectId(msg_id)},
+                        {"$push": {f"metadata.options.{option_idx}.votes": username}}
+                    )
                 
                 updated_msg = await db.messages.find_one({"_id": ObjectId(msg_id)})
                 updated_msg["_id"] = str(updated_msg["_id"])

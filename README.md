@@ -80,6 +80,10 @@ Pingora/
   - **WhatsApp-style Status**: Share updates with friends via interactive status stories.
   - **Security Audits**: Real-time notifications for account activity and login attempts.
 - **Account Management**: Comprehensive profile customization and a secure "Danger Zone" for permanent account deletion.
+- **Tiered Account System (Pro vs. Normal)**:
+  - **Pingora Premium**: Unlock exclusive features like detailed poll analytics and high-speed media sharing.
+  - **Feature Gating**: Smart access control for advanced functionality (e.g., viewing granular poll votes).
+  - **Premium Badges**: Sleek "PRO" badges for premium subscribers in profiles and sidebars.
 
 ## 🛠 Setup & Installation
 
@@ -137,6 +141,7 @@ Ensure your `.env` files in the respective service directories contain the follo
 | | `/api/auth/users` | `GET` | Search/List all users (Protected) |
 | | `/api/auth/profile` | `PUT` | Update bio and profile photo (Protected) |
 | | `/api/auth/delete-account` | `DELETE`| Permanent account removal (Protected) |
+| | `/api/auth/toggle-pro` | `POST` | Toggle between Normal and Pro tiers (Protected/Test) |
 | **Friends** | `/api/auth/friends/request`| `POST` | Send a new friend request |
 | | `/api/auth/friends/accept` | `POST` | Accept a pending request |
 | | `/api/auth/friends/unfriend`| `POST` | Remove a friend connection |
@@ -150,7 +155,8 @@ Ensure your `.env` files in the respective service directories contain the follo
 |---|---|---|---|
 | **Messaging**| `/messages` | `GET` | Fetch history for a specific room |
 | | `/upload` | `POST` | Upload media/files to a chat |
-| | `/poll` | `POST` | Create an interactive poll |
+| | `/poll` | `POST` | Create interactive polls (supports multiple answers) |
+| | `/poll/votes` | `GET` | View granular voter list (Pro Only) |
 | **Rooms** | `/rooms` | `GET` | List active DMs and last messages |
 | | `/rooms/:id` | `DELETE`| Hide a conversation from view |
 | **Settings** | `/settings/pin` | `POST` | Pin/unpin a chat room |

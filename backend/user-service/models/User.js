@@ -59,6 +59,11 @@ const User = sequelize.define('User', {
       statusSelected: []
     }
   },
+  accountType: {
+    type: DataTypes.ENUM('normal', 'pro'),
+    allowNull: false,
+    defaultValue: 'normal'
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {

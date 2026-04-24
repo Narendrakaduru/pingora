@@ -16,12 +16,7 @@ export default defineConfig({
       '/api/chat': {
         target: 'http://127.0.0.1:8001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/chat/, ''),
-      },
-      '/ws': {
-        target: 'http://127.0.0.1:8001',
         ws: true,
-        changeOrigin: true,
       },
     },
   }

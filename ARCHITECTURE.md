@@ -81,6 +81,7 @@ erDiagram
         string email UK
         string password
         string profile_photo
+        enum account_type "normal | pro"
         datetime created_at
     }
 
@@ -216,3 +217,15 @@ flowchart TD
     - `mongo_data` -> Local host path mapping.
     - `uploads` -> Shared volume for media assets.
 - **Service Discovery**: Docker internal DNS allows services to communicate via names (e.g., `http://user-service:5000`).
+
+---
+
+## 9. Tiered Service Architecture (Pro vs Normal)
+
+Pingora implements a tiered access model where certain advanced analytics or premium UI features are gated behind a "Pro" status.
+
+- **State Management**: Managed in the `User` model via the `accountType` field.
+- **Access Enforcement**: 
+  - **Frontend**: Context-aware gating (e.g., `MessageBubble` restricting poll analytics).
+  - **Backend**: API-level checks on the authenticated user's tier before returning premium data (like granular voter lists).
+  - **Visuals**: Dynamic badge rendering based on the global `AuthContext` state.
