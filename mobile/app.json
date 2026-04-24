@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Pingora",
+    "slug": "pingora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pingora.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Pingora to access your camera to take photos.",
+        "NSMicrophoneUsageDescription": "Allow Pingora to record audio messages.",
+        "NSPhotoLibraryUsageDescription": "Allow Pingora to access your photo library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.pingora.mobile",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "BLUETOOTH",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Pingora to access your photos.",
+          "cameraPermission": "Allow Pingora to use your camera."
+        }
+      ],
+      "expo-font",
+      "expo-av",
+      "expo-document-picker",
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
