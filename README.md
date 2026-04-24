@@ -87,9 +87,9 @@ The entire stack is containerized for a single-command setup.
    ```
 
 3. **Access the Services**:
-   - **Web Frontend**: [http://localhost:3000](http://localhost:3000)
-   - **User Service API**: [http://localhost:5000](http://localhost:5000)
-   - **Chat Service API**: [http://localhost:8000](http://localhost:8000)
+   - **Web Frontend**: [http://localhost:80](http://localhost:80)
+   - **User Service API**: [http://localhost:5001](http://localhost:5001)
+   - **Chat Service API**: [http://localhost:8001](http://localhost:8001)
 
 ## 📋 Required Environment Variables
 
@@ -97,7 +97,7 @@ Ensure your `.env` files in the respective service directories contain the follo
 
 | Service | Variable | Description | Default |
 |---|---|---|---|
-| **User Service** | `PORT` | API Port | `5000` |
+| **User Service** | `PORT` | API Port | `5001` |
 | | `MYSQL_HOST` | Database host | `mysql` |
 | | `JWT_SECRET` | Secret for token signing | `your_secret` |
 | **Chat Service** | `PORT` | API Port | `8000` |
