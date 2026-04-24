@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* CLEAN TONAL - LIGHT MODE */
+    --primary: 18 108 64;
+    --primary-rgb: 18 108 64;
+    --primary-hover: 16 96 57;
+    --surface: 255 255 255;
+    --surface-lowest: 255 255 255;
+    --surface-low: 248 250 252;
+    --surface-high: 241 245 249;
+    --text-main: 15 23 42;
+    --text-soft: 71 85 105;
+    --text-light: 148 163 184;
+    --border: 241 245 249;
+    
+    /* LIGHT MODE BUBBLES */
+    --bubble-sent-bg: 172 237 187;
+    --bubble-sent-text: 21 56 31;
+    --bubble-sent-meta: 21 56 31, 0.6;
+    --bubble-received-bg: 241 245 249;
+    --bubble-received-text: 15 23 42;
+    --bubble-received-meta: 71 85 105;
+  }
+
+  .dark {
+    /* OBSIDIAN DEPTH - DARK MODE */
+    --primary: 52 211 153; /* Vibrant Emerald-400 */
+    --primary-rgb: 52 211 153;
+    --primary-hover: 16 185 129;
+    --surface: 10 14 20; /* Deep Obsidian */
+    --surface-lowest: 15 23 33; /* Lifted Layer */
+    --surface-low: 10 14 20; /* Deep Sidebar */
+    --surface-high: 30 41 59; /* Action/Hover */
+    --text-main: 248 250 252;
+    --text-soft: 148 163 184;
+    --text-light: 100 116 139;
+    --border: 30 41 59;
+
+    /* DARK MODE BUBBLES */
+    --bubble-sent-bg: 6 78 59; /* Emerald-900 */
+    --bubble-sent-text: 167 243 208; /* Emerald-200 */
+    --bubble-sent-meta: 167 243 208, 0.6;
+    --bubble-received-bg: 30 41 59; /* Slate-800 */
+    --bubble-received-text: 248 250 252;
+    --bubble-received-meta: 148 163 184;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: rgb(var(--surface));
+    color: rgb(var(--text-main));
+    min-height: 100vh;
+    @apply selection:bg-primary/20;
+    letter-spacing: -0.015em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(var(--text-main));
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* THE NO-LINE RULE: Boundaries defined through background shifts */
+  .organic-container {
+    @apply bg-surface-lowest rounded-xl;
+  }
+
+  .sidebar-container {
+    @apply bg-surface-low rounded-none border-r;
+    border-color: rgba(var(--border), 0.1);
+  }
+
+  /* GLASSMORPHISM SIGNATURE */
+  .glass-header {
+    @apply bg-surface/80 backdrop-blur-2xl sticky top-0 z-50 border-b;
+    border-color: rgba(var(--border), 0.1);
+  }
+
+  /* PREMIUM BUTTONS */
+  .btn-premium {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-primary to-primary/80 text-white py-3 px-6 rounded-2xl font-bold shadow-lg shadow-primary/10;
+  }
+
+  /* ORGANIC INPUTS */
+  .organic-input {
+    @apply w-full bg-surface-high/30 border border-transparent rounded-2xl py-3 px-4 outline-none transition-all duration-300 focus:bg-surface-lowest focus:border-primary/20 focus:shadow-xl text-text-main placeholder:text-text-light/50;
+  }
+
+  /* MESSAGE BUBBLES - The Organic Pulse Asymmetry */
+  .bubble-sent {
+    background-color: rgb(var(--bubble-sent-bg));
+    color: rgb(var(--bubble-sent-text));
+    @apply shadow-lg shadow-black/5 rounded-2xl rounded-br-none px-3.5 py-2.5;
+    border-radius: 20px 20px 4px 20px;
+    position: relative;
+    /* Subtle glow in dark mode */
+    .dark & {
+      box-shadow: 0 4px 12px rgba(52, 211, 153, 0.1);
+    }
+  }
+
+  .bubble-received {
+    background-color: rgb(var(--bubble-received-bg));
+    color: rgb(var(--bubble-received-text));
+    @apply shadow-sm rounded-2xl rounded-bl-none px-3.5 py-2.5;
+    border-radius: 20px 20px 20px 4px;
+  }
+
+  /* TONAL LAYER LIFT */
+  .tonal-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5;
+  }
+
+  /* CUSTOM SCROLLBARS */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-text-light/10 rounded-full hover:bg-text-light/20 transition-colors;
+  }
+}
+
+@keyframes highlight-pulse {
+  0% { @apply ring-[10px] ring-primary/0 scale-100; }
+  50% { @apply ring-[10px] ring-primary/30 scale-[1.02]; }
+  100% { @apply ring-[10px] ring-primary/0 scale-100; }
+}
+
+.highlight-pulse {
+  animation: highlight-pulse 2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

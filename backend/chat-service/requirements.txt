@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+motor[srv]
+pydantic-settings
+python-dotenv
+websockets
+apscheduler
+python-multipart
+cryptography
+httpx

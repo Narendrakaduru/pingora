@@ -1,0 +1,25 @@
+services:
+  chat-db:
+    image: mongo:latest
+    ports:
+      - "27027:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  chat-service:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      MONGODB_URL: mongodb://chat-db:27017
+      # MONGODB_URL: mongodb://host.docker.internal:27017
+      DATABASE_NAME: chat_db
+      ENCRYPTION_KEY: D9bUrYOW5KGqf6wfHIfitPxkbzQjt_jCWmKSvCXGkeY=
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - chat-db
+
+volumes:
+  mongo_data:

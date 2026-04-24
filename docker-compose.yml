@@ -1,0 +1,4 @@
+include:
+  - backend/user-service/docker-compose.yml
+  - backend/chat-service/docker-compose.yml
+  - frontend/chat-app/docker-compose.yml

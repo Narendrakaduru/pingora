@@ -1,0 +1,28 @@
+services:
+  user-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chat_user_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  user-service:
+    build: .
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@user-db:5432/chat_user_db
+      # DATABASE_URL: postgres://nani:6264@host.docker.internal:5432/chat_user_db
+      JWT_SECRET: your_jwt_secret_key
+    depends_on:
+      - user-db
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  postgres_data:
