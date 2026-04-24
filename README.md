@@ -28,16 +28,26 @@ Pingora is a premium, high-performance real-time chat application built with a *
 
 ## 📁 Directory Structure
 
-```
+```text
 Pingora/
-├── backend/                # Microservices ecosystem
-│   ├── user-service/       # Auth, Profiles & Social (Node.js)
-│   └── chat-service/       # Real-time Messaging (Python)
-├── frontend/               # React (Vite) Application
-│   └── pingora-app/        # Main Web Interface
-├── mobile/                 # React Native (Expo) Application
-├── uploads/                # [PERSISTED] User avatars and media
-└── docker-compose.yml      # Full Stack Orchestration
+├── backend/                # Microservices Ecosystem
+│   ├── user-service/       # Identity & Social (Node.js/Express)
+│   │   ├── config/         # DB Connection & Configuration
+│   │   ├── controllers/    # Logic for Auth, Friends, and Status
+│   │   ├── models/         # Sequelize (MySQL) Data Models
+│   │   └── routes/         # Express API Route Definitions
+│   └── chat-service/       # Messaging Engine (Python/FastAPI)
+│       ├── routers/        # FastAPI Endpoints (Messages, Rooms, Groups)
+│       ├── scheduler.py    # Background tasks for disappearing messages
+│       └── ws_manager.py   # WebSocket Lifecycle & Broadcasting
+├── frontend/               # Web Application (React + Vite)
+│   └── pingora-app/        # Main Web Interface (source in chat-app/)
+│       ├── src/            # Components, Context, Hooks, and Services
+│       └── tailwind.config # Visual Theme & Premium Design Tokens
+├── mobile/                 # Mobile Application (React Native/Expo)
+│   └── src/                # Screen-based Navigation & API Hooks
+├── uploads/                # [PERSISTED] Shared Media & Avatars
+└── docker-compose.yml      # Full-Stack Container Orchestration
 ```
 
 > [!NOTE]
