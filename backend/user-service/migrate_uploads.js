@@ -32,7 +32,7 @@ async function runMigration() {
     const messages = db.collection('messages');
     
     // UPLOAD DIR is shared volume, mapped locally to root/uploads
-    // from user-service logic it maps to `d:\Node\chat-web-app\uploads` wait!
+    // from user-service logic it maps to `d:\Node\pingora\uploads` wait!
     // Since we are running on host, we can resolve the path directly:
     const uploadsDir = path.resolve(__dirname, '../../uploads');
 

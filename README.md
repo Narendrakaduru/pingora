@@ -34,7 +34,7 @@ Pingora/
 │   ├── user-service/       # Auth, Profiles & Social (Node.js)
 │   └── chat-service/       # Real-time Messaging (Python)
 ├── frontend/               # React (Vite) Application
-│   └── chat-app/           # Main Web Interface
+│   └── pingora-app/        # Main Web Interface
 ├── mobile/                 # React Native (Expo) Application
 ├── uploads/                # [PERSISTED] User avatars and media
 └── docker-compose.yml      # Full Stack Orchestration
@@ -78,7 +78,7 @@ The entire stack is containerized for a single-command setup.
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
-   cd chat-web-app
+   cd pingora
    ```
 
 2. **Start the Stack**:
