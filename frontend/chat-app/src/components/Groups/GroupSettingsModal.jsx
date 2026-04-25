@@ -183,9 +183,21 @@ const GroupSettingsModal = ({
                                                     checked={selectedUsers.includes(u.username)}
                                                     onChange={() => toggleUserSelection(u.username)}
                                                 />
-                                                <div className="flex-1 flex flex-col md:flex-row md:justify-between md:items-center">
-                                                    <span className={`font-bold text-sm tracking-tight ${selectedUsers.includes(u.username) ? 'text-primary' : 'text-text-main'}`}>{u.username}</span>
-                                                    <span className="text-[10px] font-bold text-text-light/60 uppercase tracking-widest truncate max-w-[200px]">{u.email}</span>
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold overflow-hidden shadow-inner">
+                                                    {u.profilePhoto ? (
+                                                        <img src={`${userApiUrl}${u.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        u.username[0].toUpperCase()
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className={`font-bold text-sm tracking-tight truncate ${selectedUsers.includes(u.username) ? 'text-primary' : 'text-text-main'}`}>
+                                                            {u.fullName || u.username}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-text-light/40 uppercase tracking-widest truncate ml-2">@{u.username}</span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-text-light/60 uppercase tracking-widest truncate">{u.email}</p>
                                                 </div>
                                             </label>
                                         ))

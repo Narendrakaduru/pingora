@@ -107,6 +107,13 @@ const ChatBox = () => {
   const [listModal, setListModal] = useState({ visible: false, roomId: null, currentLabels: [] });
   const [selectedGroupForInfo, setSelectedGroupForInfo] = useState(null);
   const [selectedPollForVotes, setSelectedPollForVotes] = useState(null);
+  const [focusTrigger, setFocusTrigger] = useState(0);
+
+  // Wrap setSelectedChat to also trigger focus
+  const handleSelectChat = useCallback((chat) => {
+    setSelectedChat(chat);
+    setFocusTrigger(prev => prev + 1);
+  }, [setSelectedChat]);
 
   // ─── 3. Helpers (defined BEFORE hooks that need them) ────────
   const showToast = useCallback((message, type = 'success') => {
@@ -171,7 +178,7 @@ const ChatBox = () => {
   });
 
   useKeyboardShortcuts({
-    activeView, setActiveView, selectedChat, setSelectedChat,
+    activeView, setActiveView, selectedChat, setSelectedChat: handleSelectChat,
     msgContextMenu, setMsgContextMenu,
     activeReactionMsg, setActiveReactionMsg,
     confirmModal, setConfirmModal, forwardingMessage, setForwardingMessage,
@@ -374,7 +381,7 @@ const ChatBox = () => {
             setConfirmModal(prev => ({ ...prev, visible: false }));
             if (action === 'delete') {
               await deleteChatRoom(rId);
-              setSelectedChat('general-chat');
+              handleSelectChat('general-chat');
               showToast('Chat deleted');
             } else {
               await clearChatMessages(rId);
@@ -399,7 +406,7 @@ const ChatBox = () => {
             onConfirm: async () => {
               setConfirmModal(prev => ({ ...prev, visible: false }));
               await deleteGroup(target._id, user.username);
-              setSelectedChat('general-chat');
+              handleSelectChat('general-chat');
               showToast('Group deleted');
               refreshPartners();
             }
@@ -470,7 +477,7 @@ const ChatBox = () => {
   };
 
   const backToList = () => {
-    setSelectedChat(null);
+    handleSelectChat(null);
     setShowMobileChat(false);
   };
 
@@ -478,7 +485,7 @@ const ChatBox = () => {
     if (newDMMode === 'call') {
       initiateCall('voice', username);
     } else {
-      setSelectedChat(username);
+      handleSelectChat(username);
       setActiveView('chat');
       if (window.innerWidth < 768) setShowMobileChat(true);
     }
@@ -493,7 +500,8 @@ const ChatBox = () => {
       visible: true,
       x: e.clientX,
       y: e.clientY,
-      msg
+      msg,
+      isGroup: typeof selectedChat === 'object' && selectedChat !== null
     });
   };
 
@@ -593,7 +601,7 @@ const ChatBox = () => {
                 await deleteChatRoom(user.username, rId);
               }
               if (selectedChat === (type === 'dm' ? chat.username : chat)) {
-                setSelectedChat(null);
+                handleSelectChat(null);
               }
               refreshPartners();
               showToast(type === 'group' ? 'Group deleted' : 'Chat deleted');
@@ -640,6 +648,13 @@ const ChatBox = () => {
           break;
         case 'reply':
           setReplyingToMessage({ id: msg._id || msg.id, text: msg.text || 'Attachment', username: msg.username });
+          break;
+        case 'reply_privately':
+          handleSelectChat(msg.username);
+          setReplyingToMessage({ id: msg._id || msg.id, text: msg.text || 'Attachment', username: msg.username });
+          break;
+        case 'message_user':
+          handleSelectChat(msg.username);
           break;
         case 'copy':
           navigator.clipboard.writeText(msg.text || '');
@@ -777,7 +792,7 @@ const ChatBox = () => {
     <div className="flex bg-surface-sidebar h-[100dvh] overflow-hidden font-sans text-text-main selection:bg-primary/20">
       <Sidebar 
         activeView={activeView} setActiveView={setActiveView}
-        selectedChat={selectedChat} setSelectedChat={setSelectedChat}
+        selectedChat={selectedChat} setSelectedChat={handleSelectChat}
         showMobileChat={showMobileChat} setShowMobileChat={setShowMobileChat}
         dmPartners={dmPartners} userGroups={userGroups}
         user={user} logout={logout} getUser={getUser}
@@ -959,6 +974,7 @@ const ChatBox = () => {
                 onlineUsers={onlineUsers} lastSeenMap={lastSeenMap}
                 setSelectedPollForVotes={setSelectedPollForVotes}
                 showToast={showToast}
+                setShowContactInfo={setShowContactInfo}
               />
 
               <AnimatePresence mode="wait">
@@ -989,6 +1005,7 @@ const ChatBox = () => {
                     editingMessage={editingMessage} cancelEdit={() => setEditingMessage(null)}
                     attachMenuItems={attachMenuItems} user={user}
                     getUser={getUser} 
+                    focusTrigger={focusTrigger}
                     currentChatName={
                       typeof selectedChat === 'string' 
                         ? (getUser(selectedChat)?.fullName || selectedChat) 
@@ -1096,7 +1113,7 @@ const ChatBox = () => {
             getUser={getUser}
             onClose={() => setSelectedGroupForInfo(null)}
             onOpenChat={(g) => {
-              setSelectedChat(g);
+              handleSelectChat(g);
               setActiveView('chat');
               if (window.innerWidth < 768) setShowMobileChat(true);
               setSelectedGroupForInfo(null);

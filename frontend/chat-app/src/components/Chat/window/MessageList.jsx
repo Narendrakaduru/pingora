@@ -37,7 +37,8 @@ const MessageList = ({
   onlineUsers,
   lastSeenMap,
   setSelectedPollForVotes,
-  showToast
+  showToast,
+  setShowContactInfo
 }) => {
   const roomId = getRoomId(selectedChat, user.username);
   const currentPartnerName = typeof selectedChat === 'string' ? selectedChat : (selectedChat?.username || null);
@@ -100,6 +101,7 @@ const MessageList = ({
               setSelectedMessages={setSelectedMessages}
               setSelectedPollForVotes={setSelectedPollForVotes}
               showToast={showToast}
+              setShowContactInfo={setShowContactInfo}
             />
           ))}
         </AnimatePresence>

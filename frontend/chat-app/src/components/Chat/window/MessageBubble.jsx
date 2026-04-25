@@ -36,7 +36,8 @@ const MessageBubble = ({
   selectedMessages,
   setSelectedMessages,
   setSelectedPollForVotes,
-  showToast
+  showToast,
+  setShowContactInfo
 }) => {
   const { settings } = useSettings();
   const [isDownloaded, setIsDownloaded] = useState(false);
@@ -453,7 +454,10 @@ const MessageBubble = ({
 
         <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} min-w-0`}>
           {!isMe && !isDeleted && !isSystem && (typeof selectedChat === 'object' || isGeneralChat) && (
-            <span className="text-[10px] text-text-soft font-bold mb-1.5 tracking-[0.1em] uppercase">
+            <span 
+              onClick={() => setShowContactInfo(getUser(msg.username))}
+              className="text-[10px] text-text-soft font-bold mb-1.5 tracking-[0.1em] uppercase cursor-pointer hover:text-primary transition-colors"
+            >
               {getUser(msg.username)?.fullName || (msg.username.charAt(0).toUpperCase() + msg.username.slice(1))}
             </span>
           )}

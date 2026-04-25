@@ -32,7 +32,7 @@ const GroupMembersPanel = ({ group, currentUser, getUser, onClose, onOpenChat })
                 {/* Header */}
                 <div className="p-8 pb-6 flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                             <Users size={32} />
                         </div>
                         <div>
@@ -69,8 +69,12 @@ const GroupMembersPanel = ({ group, currentUser, getUser, onClose, onOpenChat })
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="font-bold text-text-main group-hover:text-primary transition-colors">
-                                        {member}
+                                        {(() => {
+                                            const memberData = getUser(member);
+                                            return memberData?.fullName || member;
+                                        })()}
                                     </span>
+                                    <span className="text-[10px] font-bold text-text-light/40 uppercase tracking-widest">@{member}</span>
                                     {member === group.created_by && (
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <Crown size={12} className="text-amber-500" />

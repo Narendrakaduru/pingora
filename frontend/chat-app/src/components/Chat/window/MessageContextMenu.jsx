@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Info, CornerUpLeft, Copy, Forward, 
-  Pin, Star, CheckSquare, Trash2, Pencil
+  Pin, Star, CheckSquare, Trash2, Pencil, MessageSquare
 } from 'lucide-react';
 
 const MessageContextMenu = ({ 
-  x, y, msg, onClose, onAction, user 
+  x, y, msg, onClose, onAction, user, isGroup 
 }) => {
   const menuRef = useRef(null);
   const isMe = msg?.username === user?.username;
@@ -38,9 +38,19 @@ const MessageContextMenu = ({
   const menuItems = [
     { id: 'info', label: 'Message info', icon: Info },
     { id: 'reply', label: 'Reply', icon: CornerUpLeft },
+  ];
+
+  if (isGroup && !isMe) {
+    menuItems.push(
+      { id: 'reply_privately', label: 'Reply privately', icon: CornerUpLeft },
+      { id: 'message_user', label: `Message ${msg.username}`, icon: MessageSquare }
+    );
+  }
+
+  menuItems.push(
     { id: 'copy', label: 'Copy', icon: Copy },
     { id: 'forward', label: 'Forward', icon: Forward },
-  ];
+  );
 
   // Add Edit if it's mine and < 5 mins old
   if (isMe) {

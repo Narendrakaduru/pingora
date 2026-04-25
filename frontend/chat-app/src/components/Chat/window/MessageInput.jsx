@@ -25,7 +25,8 @@ const MessageInput = ({
   user,
   getUser,
   currentChatName,
-  startAudioRecording
+  startAudioRecording,
+  focusTrigger
 }) => {
   const { settings } = useSettings();
   const textareaRef = useRef(null);
@@ -39,6 +40,17 @@ const MessageInput = ({
       textareaRef.current.style.height = `${Math.min(scrollHeight, 140)}px`;
     }
   }, [text]);
+
+  // Auto-focus when chat changes or focus is triggered
+  useEffect(() => {
+    if (currentChatName && textareaRef.current) {
+      // Small delay to ensure the UI has updated or modal transition has finished
+      const timer = setTimeout(() => {
+        textareaRef.current.focus();
+      }, 150); // Slightly longer delay for better reliability across devices
+      return () => clearTimeout(timer);
+    }
+  }, [currentChatName, focusTrigger]);
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
