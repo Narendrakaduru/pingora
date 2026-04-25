@@ -30,7 +30,25 @@ router.post('/reset-password', resetPassword);
 router.get('/me', protect, getMe);
 router.get('/users', protect, getUsers);
 router.put('/profile', protect, upload.single('profilePhoto'), updateProfile);
+router.get('/uploads/:userId/photo/:filename', (req, res) => {
+  const { userId, filename } = req.params;
+  const fs = require('fs');
+  const path = require('path');
+  const { decrypt } = require('../utils/encryption');
+  const filePath = path.join('uploads', userId, 'photo', filename);
+  
+  if (!fs.existsSync(filePath)) return res.sendStatus(404);
+  
+  const encryptedContent = fs.readFileSync(filePath);
+  const decryptedContent = decrypt(encryptedContent);
+  
+  const mime = require('mime-types');
+  const type = mime.lookup(filename) || 'application/octet-stream';
+  res.set('Content-Type', type);
+  res.send(decryptedContent);
+});
 router.post('/toggle-pro', protect, toggleProStatus);
+
 router.delete('/delete-account', protect, deleteAccount);
 
 // Friend Requests

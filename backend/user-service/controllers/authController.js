@@ -9,7 +9,7 @@ const register = async (req, res) => {
     // Always store username as lowercase for consistency across services
     const user = await User.create({ username: username.toLowerCase().trim(), email, password });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.status(201).json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
+    res.status(201).json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType, role: user.role } });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -23,7 +23,7 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
+    res.json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType, role: user.role } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -36,7 +36,7 @@ const getMe = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'username', 'email', 'fullName', 'profilePhoto', 'about', 'privacy', 'accountType'],
+      attributes: ['id', 'username', 'email', 'fullName', 'profilePhoto', 'about', 'privacy', 'accountType', 'role'],
       where: {
         id: { [Op.ne]: req.user.id }
       }
@@ -82,9 +82,19 @@ const updateProfile = async (req, res) => {
     }
     
     if (req.file) {
+      const { encrypt } = require('../utils/encryption');
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = req.file.path;
+      
+      const buffer = fs.readFileSync(filePath);
+      const encryptedBuffer = encrypt(buffer);
+      fs.writeFileSync(filePath, encryptedBuffer);
+
       user.profilePhoto = `/uploads/${user.id}/photo/${req.file.filename}`;
-      console.log('UpdateProfile: New photo saved:', user.profilePhoto);
-    } else if (removePhoto === 'true') {
+      console.log('UpdateProfile: New encrypted photo saved:', user.profilePhoto);
+    }
+ else if (removePhoto === 'true') {
       user.profilePhoto = null;
       console.log('UpdateProfile: Photo removed');
     }
@@ -92,7 +102,7 @@ const updateProfile = async (req, res) => {
     await user.save();
     console.log('UpdateProfile: Success for user', user.id);
     
-    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType } });
+    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email, fullName: user.fullName, profilePhoto: user.profilePhoto, about: user.about, privacy: user.privacy, accountType: user.accountType, role: user.role } });
   } catch (err) {
     console.error('UpdateProfile Error:', err);
     res.status(500).json({ success: false, message: err.message });

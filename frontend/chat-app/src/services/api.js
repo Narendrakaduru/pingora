@@ -163,3 +163,54 @@ export const deleteAccount = async () => {
     const response = await axios.delete(`${AUTH_BASE}/delete-account`);
     return response.data;
 };
+
+// Support / Help & Feedback
+const SUPPORT_BASE = `/api/support`;
+
+export const submitSupportTicket = async ({ topic, message }) => {
+    const response = await axios.post(`${SUPPORT_BASE}/tickets`, { topic, message });
+    return response.data;
+};
+
+export const getMyTickets = async () => {
+    const response = await axios.get(`${SUPPORT_BASE}/tickets`);
+    return response.data;
+};
+
+export const requestPro = async (message) => {
+    const response = await axios.post(`${SUPPORT_BASE}/request-pro`, { message });
+    return response.data;
+};
+
+
+export const getProRequestStatus = async () => {
+    const response = await axios.get(`${SUPPORT_BASE}/pro-request/status`);
+    return response.data;
+};
+
+
+// Admin Panel API
+const ADMIN_BASE = `/api/admin`;
+
+export const getAllTickets = async () => {
+    const response = await axios.get(`${ADMIN_BASE}/tickets`);
+    return response.data;
+};
+
+export const updateTicketStatus = async (ticketId, status, adminFeedback) => {
+    const response = await axios.patch(`${ADMIN_BASE}/tickets/${ticketId}/status`, { status, adminFeedback });
+    return response.data;
+};
+
+
+export const getAllProRequests = async () => {
+    const response = await axios.get(`${ADMIN_BASE}/pro-requests`);
+    return response.data;
+};
+
+export const handleProRequest = async (requestId, status) => {
+    const response = await axios.patch(`${ADMIN_BASE}/pro-requests/${requestId}`, { status });
+    return response.data;
+};
+
+

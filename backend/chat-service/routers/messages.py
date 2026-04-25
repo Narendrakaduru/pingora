@@ -5,7 +5,10 @@ from datetime import datetime, timezone
 import os, shutil, json
 from bson import ObjectId
 from ws_manager import manager
-from utils import encrypt_text, decrypt_text
+from utils import encrypt_text, decrypt_text, encrypt_data, decrypt_data
+from fastapi.responses import Response, StreamingResponse
+import io
+
 
 router = APIRouter()
 UPLOAD_DIR = "/app/uploads"
@@ -60,8 +63,13 @@ async def upload_file(
     unique_name = f"{user_id}-{timestamp_ms}{ext}"
     file_path = os.path.join(target_dir, unique_name)
 
+    # Read file content and encrypt it
+    content = await file.read()
+    encrypted_content = encrypt_data(content)
+
     with open(file_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        f.write(encrypted_content)
+
 
     file_url = f"/uploads/{user_id}/{category}/{unique_name}"
 
@@ -123,3 +131,25 @@ async def clear_room_messages(room_id: str):
     # Broadcast clear event if needed
     await manager.broadcast_to_room(room_id, {"type": "clear_chat", "room": room_id})
     return {"success": True}
+
+@router.get("/uploads/{user_id}/{category}/{filename}")
+async def serve_file(user_id: str, category: str, filename: str):
+    """Serve and decrypt files on the fly."""
+    file_path = os.path.join(UPLOAD_DIR, user_id, category, filename)
+    if not os.path.exists(file_path):
+        return Response(status_code=404)
+    
+    with open(file_path, "rb") as f:
+        encrypted_content = f.read()
+    
+    decrypted_content = decrypt_data(encrypted_content)
+    
+    # Guess mime type
+    mime_type, _ = mimetypes.guess_type(filename)
+    if not mime_type:
+        mime_type = "application/octet-stream"
+        
+    return Response(content=decrypted_content, media_type=mime_type)
+
+import mimetypes
+

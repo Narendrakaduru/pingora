@@ -8,9 +8,28 @@ const USER_API = '/api/auth';
 
 export const useChatState = (user) => {
   // Navigation
-  const [activeView, setActiveView] = useState('chat');
-  const [selectedChat, setSelectedChat] = useState('general-chat');
+  // Navigation
+  const [activeView, setActiveView] = useState(() => localStorage.getItem(`pingora_active_view_${user?.username}`) || 'chat');
+  const [selectedChat, setSelectedChat] = useState(() => {
+    const saved = localStorage.getItem(`pingora_selected_chat_${user?.username}`);
+    if (!saved) return 'general-chat';
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      return saved;
+    }
+  });
   const [showMobileChat, setShowMobileChat] = useState(false);
+
+  // Persist navigation
+  useEffect(() => {
+    if (user?.username) {
+      localStorage.setItem(`pingora_active_view_${user.username}`, activeView);
+      const toStore = typeof selectedChat === 'object' ? JSON.stringify(selectedChat) : selectedChat;
+      localStorage.setItem(`pingora_selected_chat_${user.username}`, toStore);
+    }
+  }, [activeView, selectedChat, user?.username]);
+
 
   // Data
   const [messages, setMessages] = useState([]);

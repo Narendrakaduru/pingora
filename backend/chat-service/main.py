@@ -27,7 +27,8 @@ app = FastAPI(lifespan=lifespan)
 # Create uploads directory
 UPLOAD_DIR = "/app/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-app.mount("/api/chat/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+# app.mount("/api/chat/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 
 app.add_middleware(
     CORSMiddleware,

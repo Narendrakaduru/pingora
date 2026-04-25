@@ -2,28 +2,305 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Key, Lock, MessageSquare, Video, Bell, Keyboard, HelpCircle, LogOut, 
-  ChevronRight, Laptop, Monitor, Speaker, Camera, Mic, Check, Moon, Sun, 
+  ChevronRight, ChevronDown, Laptop, Monitor, Speaker, Camera, Mic, Check, Moon, Sun, 
   Wallpaper, Palette, Volume2, Globe, Shield, CreditCard, UserX, Clock, 
   ExternalLink, Mail, Info, RefreshCw, Smartphone, Trash2, UserPlus, X,
-  ArrowLeft, Search, FileText, MapPin, ShieldCheck
+  ArrowLeft, Search, FileText, MapPin, ShieldCheck, Ticket
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
-import { deleteAccount as apiDeleteAccount } from '../../services/api';
+import { 
+  deleteAccount as apiDeleteAccount, submitSupportTicket, getMyTickets,
+  getAllTickets, updateTicketStatus, getAllProRequests, handleProRequest,
+  requestPro, getProRequestStatus
+} from '../../services/api';
 import ConfirmModal from '../Chat/modals/ConfirmModal';
 
 const USER_API = '/api/auth';
 
+/** Accordion item used in the Help Centre FAQ list */
+const HelpFaqItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`bg-surface-lowest rounded-2xl border transition-all overflow-hidden ${open ? 'border-primary/20' : 'border-border/50'}`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between p-5 text-left group"
+      >
+        <span className="text-sm font-bold text-text-main pr-4">{question}</span>
+        <motion.div
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className={`shrink-0 transition-colors ${open ? 'text-primary' : 'text-text-light'}`}
+        >
+          <ChevronDown size={18} />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="faq-answer"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
+          >
+            <div className="px-5 pb-5 text-sm text-text-soft font-medium leading-relaxed border-t border-border/20 pt-4">
+              {answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+/** Sub-component for individual ticket management in Admin Panel */
+const AdminTicketItem = ({ ticket, onUpdate }) => {
+  const [feedback, setFeedback] = useState(ticket.adminFeedback || '');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleUpdate = async (newStatus) => {
+    setIsUpdating(true);
+    await onUpdate(ticket.id, newStatus, feedback);
+    setIsUpdating(false);
+  };
+
+  return (
+    <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 hover:shadow-md transition-all group">
+      <div className="flex items-start justify-between gap-6 mb-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
+              ticket.topic === 'Bug report' ? 'bg-red-100 text-red-700' : 
+              ticket.topic === 'Feature request' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
+            }`}>{ticket.topic}</span>
+            <span className="text-[10px] text-text-light font-bold">#TKT-{String(ticket.id).padStart(4, '0')}</span>
+          </div>
+          <h4 className="text-base font-black text-text-main">@{ticket.username}</h4>
+          <p className="text-xs text-text-soft font-semibold">{ticket.email}</p>
+        </div>
+        <select 
+          value={ticket.status}
+          onChange={(e) => handleUpdate(e.target.value)}
+          disabled={isUpdating}
+          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all outline-none disabled:opacity-50 ${
+            ticket.status === 'open' ? 'border-yellow-200 bg-yellow-50 text-yellow-700' :
+            ticket.status === 'in_progress' ? 'border-blue-200 bg-blue-50 text-blue-700' :
+            ticket.status === 'resolved' ? 'border-green-200 bg-green-50 text-green-700' : 'border-slate-200 bg-slate-50 text-slate-500'
+          }`}
+        >
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+      
+      <div className="p-4 bg-surface-low rounded-xl mb-4">
+        <p className="text-sm text-text-main font-medium leading-relaxed italic">"{ticket.message}"</p>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] font-black uppercase tracking-widest text-text-light">Admin Feedback / Response</label>
+          {ticket.adminFeedback && feedback === ticket.adminFeedback && (
+            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1">
+              <Check size={10} /> Saved
+            </span>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <textarea 
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Add internal notes or a response to the user..."
+            rows={2}
+            className="flex-1 bg-surface-low rounded-xl px-4 py-3 text-sm font-medium outline-none border border-transparent focus:border-primary/30 transition-all resize-none"
+          />
+          <button 
+            onClick={() => handleUpdate(ticket.status)}
+            disabled={isUpdating || feedback === (ticket.adminFeedback || '')}
+            className="px-4 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed h-fit py-3"
+          >
+            Save Note
+          </button>
+        </div>
+        {ticket.status !== 'closed' && (
+          <button 
+            onClick={() => handleUpdate('closed')}
+            disabled={isUpdating}
+            className="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+          >
+            Resolve & Close Ticket
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border/10 flex items-center justify-between text-[10px] text-text-light font-bold uppercase tracking-widest">
+        <span>Submitted {new Date(ticket.createdAt).toLocaleString()}</span>
+      </div>
+    </div>
+  );
+};
+
+/** Admin Panel View for managing support tickets and pro requests */
+
+const AdminPanel = ({ loading, error, tickets, proRequests, onUpdateTicket, onHandlePro, onRefresh }) => {
+  const [tab, setTab] = useState('tickets');
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-12">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
+         <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+            <ShieldCheck size={200} />
+         </div>
+         <div className="relative z-10">
+            <h3 className="text-3xl font-black tracking-tighter mb-2">Admin Dashboard</h3>
+            <p className="text-slate-300 text-sm font-medium">Manage system-wide support tickets and user upgrade requests.</p>
+         </div>
+      </div>
+
+      <div className="flex p-1.5 bg-surface-low rounded-2xl border border-border/10 w-fit">
+         {[
+           { id: 'tickets', label: 'Support Tickets', icon: Ticket },
+           { id: 'pro_requests', label: 'Pro Requests', icon: UserPlus },
+         ].map(t => (
+           <button
+             key={t.id}
+             onClick={() => setTab(t.id)}
+             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${tab === t.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-text-soft hover:text-text-main'}`}
+           >
+             <t.icon size={14} />
+             {t.label}
+           </button>
+         ))}
+      </div>
+
+      {loading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-40">
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+          <p className="text-xs font-black uppercase tracking-[0.2em]">Synchronizing data...</p>
+        </div>
+      ) : error ? (
+        <div className="p-6 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center gap-4">
+          <X size={24} />
+          <p className="text-sm font-bold">{error}</p>
+          <button onClick={onRefresh} className="ml-auto px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Retry</button>
+        </div>
+      ) : tab === 'tickets' ? (
+        <div className="space-y-4">
+          {tickets.length === 0 ? (
+            <div className="py-20 text-center opacity-30">
+              <Ticket size={48} className="mx-auto mb-4" />
+              <p className="text-sm font-bold uppercase tracking-widest">No tickets to display</p>
+            </div>
+          ) : (
+            tickets.map(ticket => (
+              <AdminTicketItem 
+                key={ticket.id} 
+                ticket={ticket} 
+                onUpdate={onUpdateTicket} 
+              />
+            ))
+          )}
+        </div>
+
+      ) : (
+        <div className="space-y-4">
+          {proRequests.length === 0 ? (
+            <div className="py-20 text-center opacity-30">
+              <UserPlus size={48} className="mx-auto mb-4" />
+              <p className="text-sm font-bold uppercase tracking-widest">No pro requests</p>
+            </div>
+          ) : (
+            proRequests.map(req => (
+              <div key={req.id} className="bg-surface-lowest p-6 rounded-2xl border border-border/50 flex items-center gap-6">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  {req.username[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-black text-text-main truncate">@{req.username}</h4>
+                  <p className="text-xs text-text-soft font-medium truncate">{req.message || 'No message provided'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {req.status === 'pending' ? (
+                    <>
+                      <button 
+                        onClick={() => onHandlePro(req.id, 'approved')}
+                        className="px-4 py-2 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-600 transition-all"
+                      >
+                        Approve
+                      </button>
+                      <button 
+                        onClick={() => onHandlePro(req.id, 'rejected')}
+                        className="px-4 py-2 bg-surface-low text-text-soft rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : (
+                    <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {req.status}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+/** Toast notification for feedback */
+const Toast = ({ message, type, onClose }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20, x: '-50%' }}
+      animate={{ opacity: 1, y: 0, x: '-50%' }}
+      exit={{ opacity: 0, y: -20, x: '-50%' }}
+      className={`fixed top-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px] backdrop-blur-md border ${
+        type === 'success' ? 'bg-green-500/90 border-green-400 text-white' : 'bg-red-500/90 border-red-400 text-white'
+      }`}
+    >
+      <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+        {type === 'success' ? <Check size={18} /> : <X size={18} />}
+      </div>
+      <p className="text-sm font-bold flex-1">{message}</p>
+      <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+        <X size={16} />
+      </button>
+    </motion.div>
+  );
+};
+
 const SettingsView = ({ onBack, allUsers = [] }) => {
+
+
   const { user, logout, toggleProStatus } = useAuth();
   const { settings, updateSettings, blockContact, unblockContact, togglePrivacyUser } = useSettings();
-  const [activeCategory, setActiveCategory] = useState('account');
+  const [activeCategory, setActiveCategory] = useState(() => localStorage.getItem(`pingora_settings_cat_${user?.username}`) || 'account');
   const [devices, setDevices] = useState({ video: [], audio: [] });
   const [selectedDevices, setSelectedDevices] = useState({ video: '', audio: '' });
   
   const [newBlockUsername, setNewBlockUsername] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [subView, setSubView] = useState(null);
+  const [subView, setSubView] = useState(() => localStorage.getItem(`pingora_settings_sub_${user?.username}`) || null);
+
+  // Persist settings navigation
+  useEffect(() => {
+    if (user?.username) {
+      localStorage.setItem(`pingora_settings_cat_${user.username}`, activeCategory);
+      if (subView) {
+        localStorage.setItem(`pingora_settings_sub_${user.username}`, subView);
+      } else {
+        localStorage.removeItem(`pingora_settings_sub_${user.username}`);
+      }
+    }
+  }, [activeCategory, subView, user?.username]);
+
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [tempTheme, setTempTheme] = useState(settings.theme);
   const [activePrivacyDetail, setActivePrivacyDetail] = useState(null);
@@ -36,6 +313,64 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Notification state
+  const [notification, setNotification] = useState(null); // { message, type }
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+
+  // Contact / Support form state
+  const [supportTopic, setSupportTopic] = useState('Bug report');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportSubmitting, setSupportSubmitting] = useState(false);
+  const [supportResult, setSupportResult] = useState(null); // { success, message }
+
+  // My Tickets state
+  const [myTickets, setMyTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketsError, setTicketsError] = useState(null);
+
+  const fetchMyTickets = async () => {
+    setTicketsLoading(true);
+    setTicketsError(null);
+    try {
+      const res = await getMyTickets();
+      setMyTickets(res.tickets || []);
+    } catch (err) {
+      setTicketsError('Could not load tickets. Please try again.');
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
+  // Admin state
+  const [adminTickets, setAdminTickets] = useState([]);
+  const [adminProRequests, setAdminProRequests] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState(null);
+
+  const fetchAdminData = async () => {
+    if (user.role !== 'admin') return;
+    setAdminLoading(true);
+    setAdminError(null);
+    try {
+      const [ticketsRes, proRes] = await Promise.all([
+        getAllTickets(),
+        getAllProRequests()
+      ]);
+      setAdminTickets(ticketsRes.tickets || []);
+      setAdminProRequests(proRes.requests || []);
+    } catch (err) {
+      setAdminError('Failed to load administrative data.');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+
+
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
@@ -43,16 +378,17 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
       if (res.success) {
         logout();
       } else {
-        alert(res.message || "Failed to delete account");
+        showNotification(res.message || "Failed to delete account", 'error');
       }
     } catch (err) {
       console.error("Delete account error:", err);
-      alert("An error occurred while deleting your account");
+      showNotification("An error occurred while deleting your account", 'error');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
     }
   };
+
 
   const categories = [
     { id: 'account', icon: Key, title: 'Account', subtitle: 'Security notifications, account info' },
@@ -62,8 +398,45 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
     { id: 'notifications', icon: Bell, title: 'Notifications', subtitle: 'Messages, groups, sounds' },
     { id: 'shortcuts', icon: Keyboard, title: 'Keyboard shortcuts', subtitle: 'Quick actions' },
     { id: 'help', icon: HelpCircle, title: 'Help and feedback', subtitle: 'Help centre, contact us, privacy policy' },
+    ...(user.role === 'admin' ? [{ id: 'admin', icon: ShieldCheck, title: 'Admin Panel', subtitle: 'Manage tickets and requests' }] : []),
     { id: 'logout', icon: LogOut, title: 'Log out', subtitle: '', variant: 'danger' },
   ];
+
+  // Pro request state
+  const [proRequestStatus, setProRequestStatus] = useState(null);
+  const [proRequestSubmitting, setProRequestSubmitting] = useState(false);
+
+  const fetchProStatus = async () => {
+    try {
+      const res = await getProRequestStatus();
+      setProRequestStatus(res.status);
+    } catch (err) {
+      console.error("Failed to fetch pro status", err);
+    }
+  };
+
+  const handleRequestPro = async () => {
+    setProRequestSubmitting(true);
+    try {
+      await requestPro("User requested pro account upgrade.");
+      setProRequestStatus('pending');
+      showNotification("Pro request submitted successfully! An admin will review it soon.", 'success');
+    } catch (err) {
+      showNotification("Failed to submit pro request.", 'error');
+    } finally {
+      setProRequestSubmitting(false);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchProStatus();
+    // Auto-fetch if we loaded from localStorage
+    if (activeCategory === 'admin') fetchAdminData();
+    if (subView === 'my_tickets') fetchMyTickets();
+  }, []);
+
+
 
   useEffect(() => {
     if (activeCategory === 'video_voice') {
@@ -239,17 +612,28 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                   <p className="text-sm font-medium text-white/80 mb-6 max-w-[80%] leading-relaxed">
                     {user.accountType === 'pro' 
                       ? 'Enjoy your premium features including detailed poll analytics and exclusive badges.' 
-                      : 'Unlock advanced poll analytics, profile badges, and high-speed media sharing.'}
+                      : proRequestStatus === 'pending'
+                        ? 'Your request for a Pro account is currently under review by an admin.'
+                        : 'Unlock advanced poll analytics, profile badges, and high-speed media sharing.'}
                   </p>
 
-                  <button 
-                    onClick={() => toggleProStatus()}
-                    className="px-6 py-3 bg-white text-primary rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
-                  >
-                    {user.accountType === 'pro' ? 'Switch to Normal' : 'Get Pro Now'}
-                  </button>
+                  {user.accountType !== 'pro' && (
+                    <button 
+                      onClick={handleRequestPro}
+                      disabled={proRequestStatus === 'pending' || proRequestSubmitting}
+                      className="px-6 py-3 bg-white text-primary rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {proRequestSubmitting ? 'Sending...' : proRequestStatus === 'pending' ? 'Request Pending' : 'Request Pro Upgrade'}
+                    </button>
+                  )}
+                  {user.accountType === 'pro' && (
+                    <div className="px-4 py-2 bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] w-fit">
+                       Pro Active
+                    </div>
+                  )}
                 </div>
               </div>
+
 
               <div className="space-y-4">
                 <button 
@@ -934,10 +1318,427 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
         );
 
       case 'help':
+        if (subView === 'help_centre') {
+          const faqs = [
+            { q: 'How do I send a message?', a: 'Open any chat from your conversation list and type in the message box at the bottom. Press Enter or click the send button to deliver your message instantly.' },
+            { q: 'How do I start a video call?', a: 'Open a conversation and click the video camera icon in the top-right corner of the chat header. The other person will receive a call notification.' },
+            { q: 'Can I send files and images?', a: 'Yes! Click the paperclip or attachment icon in the message bar. You can share images, videos, documents and other files up to 100 MB.' },
+            { q: 'How do I pin a message?', a: 'Hover over any message and click the ⋯ menu, then choose "Pin". Pinned messages appear at the top of your chat so you can find them quickly. Pro users can pin up to 20 messages per chat.' },
+            { q: 'How do I block someone?', a: 'Go to Settings → Privacy → Blocked Contacts and type the username you want to block. You can also block from a chat by clicking the contact\'s name in the header.' },
+            { q: 'How do I delete my account?', a: 'Go to Settings → Account, scroll to the Danger Zone section and click "Delete Account". This is permanent and cannot be undone.' },
+            { q: 'What is Pingora Premium?', a: 'Pingora Premium (Pro) unlocks advanced features including up to 20 pinned messages per chat, detailed poll analytics, and exclusive profile badges. Toggle it from Settings → Account.' },
+            { q: 'Are my messages encrypted?', a: 'Yes. Pingora uses end-to-end encryption for all messages, calls, photos, videos, and documents. Not even our servers can read your messages.' },
+          ];
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-12">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setSubView(null)} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">Help Centre</h3>
+              </div>
+
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-2xl border border-primary/10">
+                <div className="flex items-center gap-3 mb-2">
+                  <HelpCircle size={20} className="text-primary" />
+                  <span className="text-sm font-black uppercase tracking-widest text-primary">Frequently Asked Questions</span>
+                </div>
+                <p className="text-xs text-text-soft font-medium">Everything you need to know about using Pingora.</p>
+              </div>
+
+              <div className="space-y-3">
+                {faqs.map((faq, i) => (
+                  <HelpFaqItem key={i} question={faq.q} answer={faq.a} />
+                ))}
+              </div>
+
+              <div className="p-6 bg-surface-lowest rounded-2xl border border-border/50 text-center">
+                <p className="text-sm font-bold text-text-main mb-1">Still need help?</p>
+                <p className="text-xs text-text-soft mb-4">Our support team is ready to assist you.</p>
+                <button
+                  onClick={() => setSubView('contact_us')}
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all active:scale-95"
+                >
+                  Contact Support
+                </button>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (subView === 'contact_us') {
+          const handleSupportSubmit = async () => {
+            if (!supportMessage.trim() || supportMessage.trim().length < 10) {
+              setSupportResult({ success: false, message: 'Please write at least 10 characters describing your issue.' });
+              return;
+            }
+            setSupportSubmitting(true);
+            setSupportResult(null);
+            try {
+              const res = await submitSupportTicket({ topic: supportTopic, message: supportMessage });
+              if (res.success) {
+                setSupportResult({ success: true, message: res.message });
+                setSupportMessage('');
+                setSupportTopic('Bug report');
+              } else {
+                setSupportResult({ success: false, message: res.message || 'Failed to submit. Please try again.' });
+              }
+            } catch (err) {
+              setSupportResult({ success: false, message: 'Network error. Please check your connection and try again.' });
+            } finally {
+              setSupportSubmitting(false);
+            }
+          };
+
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-12">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => { setSubView(null); setSupportResult(null); }} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">Contact Us</h3>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-500/10 to-primary/5 p-6 rounded-2xl border border-blue-500/10">
+                <div className="flex items-center gap-3 mb-2">
+                  <Mail size={20} className="text-blue-500" />
+                  <span className="text-sm font-black uppercase tracking-widest text-blue-500">Support Team</span>
+                </div>
+                <p className="text-xs text-text-soft font-medium">We typically respond within 24–48 hours on business days.</p>
+              </div>
+
+              <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { icon: MessageSquare, label: 'Chat support', desc: 'Mon–Fri, 9am–6pm' },
+                    { icon: Mail, label: 'Email support', desc: 'support@pingora.in' },
+
+                  ].map((item, i) => (
+                    <div key={i} className="p-4 rounded-xl bg-surface-low border border-border/5 flex flex-col gap-2">
+                      <item.icon size={16} className="text-primary" />
+                      <p className="text-xs font-bold text-text-main">{item.label}</p>
+                      <p className="text-[10px] text-text-soft">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-border/20 pt-5 space-y-4">
+                  <p className="text-[10px] font-black uppercase text-text-light tracking-widest">Send us a message</p>
+
+                  <AnimatePresence>
+                    {supportResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className={`flex items-start gap-3 p-4 rounded-xl text-sm font-medium ${supportResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-600'}`}
+                      >
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${supportResult.success ? 'bg-green-500' : 'bg-red-500'} text-white mt-0.5`}>
+                          {supportResult.success ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
+                        </div>
+                        <span>{supportResult.message}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-widest">Topic</label>
+                    <select
+                      value={supportTopic}
+                      onChange={(e) => setSupportTopic(e.target.value)}
+                      disabled={supportSubmitting}
+                      className="w-full h-11 bg-surface-low rounded-xl px-4 text-sm font-semibold outline-none border border-transparent focus:border-primary/30 transition-all disabled:opacity-60"
+                    >
+                      <option>Bug report</option>
+                      <option>Feature request</option>
+                      <option>Account issue</option>
+                      <option>Billing question</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-widest">Your message</label>
+                    <textarea
+                      rows={5}
+                      placeholder="Describe your issue in detail (min. 10 characters)..."
+                      value={supportMessage}
+                      onChange={(e) => { setSupportMessage(e.target.value); if (supportResult) setSupportResult(null); }}
+                      disabled={supportSubmitting}
+                      className="w-full bg-surface-low rounded-xl px-4 py-3 text-sm font-medium outline-none border border-transparent focus:border-primary/30 transition-all resize-none disabled:opacity-60"
+                    />
+                    <p className={`text-[10px] font-bold text-right transition-colors ${supportMessage.trim().length >= 10 ? 'text-green-500' : 'text-text-light'}`}>
+                      {supportMessage.trim().length} / 10 min
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSupportSubmit}
+                    disabled={supportSubmitting || supportMessage.trim().length < 10}
+                    className="w-full h-12 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                  >
+                    {supportSubmitting ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                          className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full"
+                        />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail size={15} />
+                        Send Message
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (subView === 'privacy_terms') {
+          const sections = [
+            {
+              title: 'Privacy Policy',
+              icon: Shield,
+              content: [
+                { heading: 'Information We Collect', body: 'We collect information you provide when you create an account (username, email) and information generated when you use Pingora (messages, media, call logs). We do NOT store the content of your end-to-end encrypted messages on our servers in decryptable form.' },
+                { heading: 'How We Use Your Information', body: 'Your information is used to operate the service, provide customer support, improve reliability, and prevent abuse. We do not sell your personal data to third parties.' },
+                { heading: 'Data Retention', body: 'Your messages are stored only until delivered. If a message cannot be delivered (e.g., the recipient is offline), it is queued for up to 30 days before deletion.' },
+                { heading: 'Your Rights', body: 'You have the right to access, correct, and delete your personal data at any time. You can delete your account from Settings → Account → Delete Account.' },
+              ]
+            },
+            {
+              title: 'Terms of Service',
+              icon: FileText,
+              content: [
+                { heading: 'Acceptable Use', body: 'Pingora may only be used for lawful purposes. You agree not to use Pingora to send spam, engage in harassment, distribute malware, or violate any applicable laws.' },
+                { heading: 'Intellectual Property', body: 'You retain ownership of the content you share via Pingora. By using the service you grant Pingora a limited licence to store and transmit your content solely to provide the service.' },
+                { heading: 'Account Termination', body: 'We reserve the right to suspend or terminate accounts that violate these terms. You may also delete your own account at any time from Settings.' },
+                { heading: 'Limitation of Liability', body: 'Pingora is provided "as is" without warranties of any kind. To the maximum extent permitted by law, Pingora shall not be liable for indirect or consequential damages.' },
+              ]
+            },
+          ];
+
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-12">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setSubView(null)} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">Privacy & Terms</h3>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-500/10 to-primary/5 p-6 rounded-2xl border border-purple-500/10">
+                <div className="flex items-center gap-3 mb-2">
+                  <Info size={20} className="text-purple-500" />
+                  <span className="text-sm font-black uppercase tracking-widest text-purple-500">Legal Documents</span>
+                </div>
+                <p className="text-xs text-text-soft font-medium">Last updated: 1 April 2025 • Effective: 1 April 2025</p>
+              </div>
+
+              {sections.map((sec, si) => (
+                <div key={si} className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-5">
+                  <div className="flex items-center gap-3 pb-3 border-b border-border/20">
+                    <sec.icon size={18} className="text-primary" />
+                    <h4 className="text-base font-black tracking-tight text-text-main">{sec.title}</h4>
+                  </div>
+                  {sec.content.map((item, ii) => (
+                    <div key={ii} className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-primary">{item.heading}</p>
+                      <p className="text-sm text-text-soft font-medium leading-relaxed">{item.body}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+              <p className="text-center text-[9px] font-black text-text-light uppercase tracking-[0.2em] opacity-40">Questions? Email legal@pingora.in</p>
+
+            </motion.div>
+          );
+        }
+
+        if (subView === 'check_updates') {
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-12">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setSubView(null)} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">App Info</h3>
+              </div>
+
+              <div className="bg-surface-lowest p-8 rounded-2xl border border-border/50 text-center space-y-4">
+                <div className="w-24 h-24 mx-auto mb-2 drop-shadow-xl">
+                  <img src="/pingora_logo.png" alt="Pingora Logo" className="w-full h-full object-contain" />
+                </div>
+
+                <div>
+                  <h4 className="text-2xl font-black tracking-tight text-text-main">Pingora</h4>
+                  <p className="text-xs text-text-soft font-medium">Secure messaging, reimagined</p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-600 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-black uppercase tracking-widest">Up to date</span>
+                </div>
+              </div>
+
+              <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-4">
+                <p className="text-[10px] font-black uppercase text-text-light tracking-widest">Version Information</p>
+                {[
+                  { label: 'App Version', value: 'v1.4.0' },
+                  { label: 'Build', value: '20260401-stable' },
+                  { label: 'Platform', value: 'Web (React)' },
+                  { label: 'Released', value: '1 April 2025' },
+                ].map((row, i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b border-border/10 last:border-0">
+                    <span className="text-sm font-semibold text-text-soft">{row.label}</span>
+                    <span className="text-sm font-black text-text-main">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-4">
+                <p className="text-[10px] font-black uppercase text-text-light tracking-widest">What's New in v1.4.0</p>
+                {[
+                  '📌 Pinned messages with per-user subscription limits',
+                  '📊 Poll analytics for Pro users',
+                  '🖼️ Custom chat wallpapers',
+                  '👁️ Story viewer tracking',
+                  '🔒 Improved end-to-end encryption indicators',
+                  '⚡ Performance improvements and bug fixes',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 shrink-0" />
+                    <p className="text-sm text-text-soft font-medium">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button className="w-full h-12 bg-surface-lowest border border-border/50 text-text-main rounded-xl text-xs font-black uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all flex items-center justify-center gap-2">
+                <RefreshCw size={15} />
+                Check for Updates
+              </button>
+            </motion.div>
+          );
+        }
+
+        if (subView === 'my_tickets') {
+          const statusConfig = {
+            open:        { label: 'Open',        bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-400' },
+            in_progress: { label: 'In Progress',  bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-400'   },
+            resolved:    { label: 'Resolved',     bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500'  },
+            closed:      { label: 'Closed',       bg: 'bg-slate-100',  text: 'text-slate-500',  dot: 'bg-slate-400'  },
+          };
+
+          return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-12">
+              <div className="flex items-center gap-4 mb-2">
+                <button onClick={() => setSubView(null)} className="p-2 hover:bg-surface-low rounded-xl transition-colors text-primary">
+                  <ArrowLeft size={20} />
+                </button>
+                <h3 className="text-xl font-black tracking-tight text-text-main">My Tickets</h3>
+                <button
+                  onClick={fetchMyTickets}
+                  disabled={ticketsLoading}
+                  className="ml-auto p-2 hover:bg-surface-low rounded-xl transition-colors text-primary disabled:opacity-50"
+                  title="Refresh"
+                >
+                  <motion.div animate={{ rotate: ticketsLoading ? 360 : 0 }} transition={{ duration: 0.8, repeat: ticketsLoading ? Infinity : 0, ease: 'linear' }}>
+                    <RefreshCw size={17} />
+                  </motion.div>
+                </button>
+              </div>
+
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-2xl border border-primary/10">
+                <div className="flex items-center gap-3 mb-1">
+                  <Ticket size={18} className="text-primary" />
+                  <span className="text-sm font-black uppercase tracking-widest text-primary">Support Tickets</span>
+                </div>
+                <p className="text-xs text-text-soft font-medium">Track the status of your submitted requests. Hit refresh to see the latest updates.</p>
+              </div>
+
+              {ticketsError && (
+                <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
+                  <X size={16} />
+                  {ticketsError}
+                </div>
+              )}
+
+              {ticketsLoading && myTickets.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 opacity-40">
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mb-3" />
+                  <p className="text-xs font-bold uppercase tracking-widest">Loading tickets...</p>
+                </div>
+              ) : myTickets.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 opacity-40">
+                  <Ticket size={36} className="mb-3" />
+                  <p className="text-xs font-bold uppercase tracking-widest">No tickets yet</p>
+                  <p className="text-[10px] mt-1 text-text-soft">Submit a request via Contact Us</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myTickets.map((ticket) => {
+                    const cfg = statusConfig[ticket.status] || statusConfig.open;
+                    const date = new Date(ticket.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const isResolved = ticket.status === 'resolved' || ticket.status === 'closed';
+                    return (
+                      <div
+                        key={ticket.id}
+                        className={`bg-surface-lowest rounded-2xl border p-5 space-y-3 transition-all ${isResolved ? 'border-green-200/70' : 'border-border/50'}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="text-xs font-black text-text-main">{ticket.topic}</span>
+                              <span className="text-[9px] text-text-light font-bold">#TKT-{String(ticket.id).padStart(4, '0')}</span>
+                            </div>
+                            <p className="text-[11px] text-text-soft font-medium line-clamp-2 leading-relaxed">{ticket.message}</p>
+                          </div>
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0 ${cfg.bg}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ${ticket.status === 'open' ? 'animate-pulse' : ''}`} />
+                            <span className={`text-[10px] font-black uppercase tracking-wide ${cfg.text}`}>{cfg.label}</span>
+                          </div>
+                        </div>
+
+                        {ticket.adminFeedback && (
+                          <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 space-y-1.5 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
+                              <ShieldCheck size={24} />
+                            </div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-primary">Admin Response</p>
+                            <p className="text-[11px] text-text-main font-medium leading-relaxed italic">"{ticket.adminFeedback}"</p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                          <span className="text-[10px] text-text-light font-semibold">Submitted {date}</span>
+                          {isResolved && (
+                            <div className="flex items-center gap-1.5 text-green-600">
+                              <Check size={12} strokeWidth={3} />
+                              <span className="text-[10px] font-black uppercase tracking-wide">
+                                {ticket.status === 'resolved' ? 'Issue Resolved' : 'Ticket Closed'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          );
+        }
+
         return (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
              <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50 space-y-4">
-                <button className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left">
+                <button
+                  onClick={() => setSubView('help_centre')}
+                  className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left"
+                >
                   <div className="flex items-center gap-4">
                     <HelpCircle size={18} className="text-primary/70" />
                     <div>
@@ -945,9 +1746,12 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                       <p className="text-[10px] text-text-soft font-medium uppercase tracking-widest">Get support and read FAQs</p>
                     </div>
                   </div>
-                  <ExternalLink size={16} className="text-text-light opacity-40 group-hover:opacity-100 transition-opacity" />
+                  <ChevronRight size={16} className="text-text-light group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left">
+                <button
+                  onClick={() => setSubView('contact_us')}
+                  className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left"
+                >
                   <div className="flex items-center gap-4">
                     <Mail size={18} className="text-primary/70" />
                     <div>
@@ -957,14 +1761,39 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                   </div>
                   <ChevronRight size={16} className="text-text-light group-hover:translate-x-1 transition-transform" />
                 </button>
+                <button
+                  onClick={() => { setSubView('my_tickets'); fetchMyTickets(); }}
+                  className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <Ticket size={18} className="text-primary/70" />
+                    <div>
+                      <p className="text-sm font-bold">My Tickets</p>
+                      <p className="text-[10px] text-text-soft font-medium uppercase tracking-widest">Track your support requests</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-text-light group-hover:translate-x-1 transition-transform" />
+                </button>
                 <div className="border-t border-border/30 pt-4 mt-2">
-                  <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-low transition-colors text-left">
-                    <Info size={18} className="text-text-soft opacity-60" />
-                    <span className="text-sm font-bold text-text-main">Privacy Policy & Terms</span>
+                  <button
+                    onClick={() => setSubView('privacy_terms')}
+                    className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Info size={18} className="text-text-soft opacity-60" />
+                      <span className="text-sm font-bold text-text-main">Privacy Policy & Terms</span>
+                    </div>
+                    <ChevronRight size={16} className="text-text-light group-hover:translate-x-1 transition-transform" />
                   </button>
-                  <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-low transition-colors text-left">
-                    <RefreshCw size={18} className="text-text-soft opacity-60" />
-                    <span className="text-sm font-bold text-text-main">Check for Updates</span>
+                  <button
+                    onClick={() => setSubView('check_updates')}
+                    className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-surface-low transition-colors group text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <RefreshCw size={18} className="text-text-soft opacity-60" />
+                      <span className="text-sm font-bold text-text-main">Check for Updates</span>
+                    </div>
+                    <ChevronRight size={16} className="text-text-light group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
              </div>
@@ -972,10 +1801,38 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
           </motion.div>
         );
 
+      case 'admin':
+        return <AdminPanel 
+          loading={adminLoading}
+          error={adminError}
+          tickets={adminTickets}
+          proRequests={adminProRequests}
+          onUpdateTicket={async (id, status, adminFeedback) => {
+            try {
+              await updateTicketStatus(id, status, adminFeedback);
+              setAdminTickets(prev => prev.map(t => t.id === id ? { ...t, status, adminFeedback } : t));
+              showNotification(`Ticket #${id} updated to ${status}`, 'success');
+            } catch (err) { showNotification('Failed to update ticket', 'error'); }
+          }}
+
+          onHandlePro={async (id, status) => {
+            try {
+              await handleProRequest(id, status);
+              setAdminProRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+              showNotification(`Pro request ${status}`, 'success');
+            } catch (err) { showNotification('Failed to handle request', 'error'); }
+          }}
+
+          onRefresh={fetchAdminData}
+        />;
+
       default:
+
         return <div className="text-text-soft italic text-sm">Feature coming soon...</div>;
     }
   };
+
+
 
   return (
     <div className="flex-1 w-full h-full bg-surface overflow-hidden flex flex-col">
@@ -990,7 +1847,9 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                 >
                   <ArrowLeft size={20} />
                 </button>
+                <img src="/pingora_logo.png" alt="Logo" className="w-10 h-10 object-contain" />
                 <h2 className="text-3xl font-black tracking-tighter text-text-main">Settings</h2>
+
              </div>
              <p className="text-[10px] font-bold text-text-light uppercase tracking-widest ml-1">Configure your workspace</p>
           </div>
@@ -1001,6 +1860,7 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                 key={cat.id}
                 onClick={() => {
                    if (cat.id === 'logout') { logout(); return; }
+                   if (cat.id === 'admin') fetchAdminData();
                    setActiveCategory(cat.id);
                    setSubView(null);
                 }}
@@ -1129,6 +1989,16 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {notification && (
+          <Toast 
+            message={notification.message} 
+            type={notification.type} 
+            onClose={() => setNotification(null)} 
+          />
+        )}
+      </AnimatePresence>
+
       {/* Mobile Nav Overlay */}
       <ConfirmModal 
         isOpen={showDeleteModal}
@@ -1139,6 +2009,7 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
         confirmText={isDeleting ? "Deleting..." : "Delete Permanently"}
         type="danger"
       />
+
     </div>
   );
 };

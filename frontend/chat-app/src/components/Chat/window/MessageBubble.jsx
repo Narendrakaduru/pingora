@@ -355,7 +355,8 @@ const MessageBubble = ({
               </div>
             )}
             <div className="flex flex-row flex-wrap items-end justify-end gap-x-4 gap-y-1">
-              <div className="break-words leading-relaxed text-left flex-grow min-w-[20px] pr-1">{msg.text}</div>
+              <div className="break-words leading-relaxed text-left flex-grow min-w-[20px] pr-1 whitespace-pre-wrap">{msg.text}</div>
+
               <div 
                 className="flex items-center gap-1.5 flex-nowrap text-[9px] font-black tracking-wider whitespace-nowrap opacity-60 mb-0.5 shrink-0"
                 style={{ color: `rgba(var(${isMe ? '--bubble-sent-meta' : '--bubble-received-meta'}))` }}

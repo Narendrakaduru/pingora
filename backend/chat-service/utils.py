@@ -28,3 +28,23 @@ def decrypt_text(encrypted_text: str) -> str:
     except Exception:
         # If decryption fails (e.g., old unencrypted message or bad key), return original
         return encrypted_text
+
+def encrypt_data(data: bytes) -> bytes:
+    """Encrypts raw bytes if encryption is configured."""
+    if not fernet or not data:
+        return data
+    try:
+        return fernet.encrypt(data)
+    except Exception as e:
+        print(f"Data encryption failed: {e}")
+        return data
+
+def decrypt_data(data: bytes) -> bytes:
+    """Decrypts raw bytes if encryption is configured."""
+    if not fernet or not data:
+        return data
+    try:
+        return fernet.decrypt(data)
+    except Exception:
+        return data
+

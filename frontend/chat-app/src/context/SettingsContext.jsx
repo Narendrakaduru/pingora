@@ -90,7 +90,9 @@ export const SettingsProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('app-settings', JSON.stringify(settings));
-    
+  }, [settings]);
+
+  useEffect(() => {
     const applyTheme = (theme) => {
       let activeTheme = theme;
       if (theme === 'system') {
@@ -116,6 +118,7 @@ export const SettingsProvider = ({ children }) => {
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
   }, [settings.theme]);
+
 
   const updateSettings = (key, value) => {
     setSettings(prev => {
