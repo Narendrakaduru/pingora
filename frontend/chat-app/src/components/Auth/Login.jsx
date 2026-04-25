@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
@@ -148,9 +149,9 @@ const Login = () => {
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light group-focus-within:text-primary transition-colors duration-300" size={18} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                className={`organic-input !pl-12 ${(touched.password && errors.password) ? 'border-red-300 bg-red-50/30' : ''}`}
+                className={`organic-input !pl-12 !pr-12 ${(touched.password && errors.password) ? 'border-red-300 bg-red-50/30' : ''}`}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -158,6 +159,13 @@ const Login = () => {
                 }}
                 onBlur={() => handleBlur('password')}
               />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-light hover:text-primary transition-colors duration-300 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             {(touched.password && errors.password) && <p className="text-[10px] font-bold text-red-500 ml-1 mt-1 uppercase tracking-tighter">{errors.password}</p>}
           </div>
