@@ -181,6 +181,8 @@ flowchart TD
         W5 --> W6([Callee])
         W6 -. "webrtc_signal (SDP/ICE)" .-> W3
         W3 -. "relay" .-> W1
+        W1 ==== W6
+        note right of W1: Peer-to-Peer E2EE Media Stream (DTLS-SRTP)
     end
 ```
 
@@ -229,3 +231,17 @@ Pingora implements a tiered access model where certain advanced analytics or pre
   - **Frontend**: Context-aware gating (e.g., `MessageBubble` restricting poll analytics).
   - **Backend**: API-level checks on the authenticated user's tier before returning premium data (like granular voter lists).
   - **Visuals**: Dynamic badge rendering based on the global `AuthContext` state.
+
+---
+
+## 10. Data Security & Privacy
+
+Pingora implements multi-layered security for user data:
+
+- **Media Encryption at Rest**: 
+  - All user uploads (profile photos, chat attachments) are encrypted before being written to disk using **AES-256-CBC** (Node.js) and **Fernet** (Python).
+  - Static file serving is disabled; media is decrypted "on-the-fly" in server memory during authenticated HTTP requests.
+- **End-to-End Encryption (E2EE) in Transit**:
+  - All real-time Audio and Video calls utilize WebRTC. The peer-to-peer media streams are secured using **DTLS-SRTP** (Datagram Transport Layer Security - Secure Real-time Transport Protocol), meaning media cannot be intercepted by the backend servers.
+- **Client-Side Persistence**:
+  - Application settings (theme, media quality preferences) are securely synchronized to `localStorage` and immediately rehydrated on page load, minimizing unnecessary server round-trips while preserving UX state.

@@ -62,8 +62,10 @@ Pingora/
 ## ✨ Key Features
 
 - **Premium Real-time Messaging**: Instant message delivery with WebSocket persistence and delivery acknowledgments.
-- **Audio/Video Calls (WebRTC)**: Peer-to-peer secure calling integrated directly into the chat interface.
-- **Message Security**: Database-level text encryption ensures message content remains secure at rest.
+- **Audio/Video Calls (WebRTC)**: Peer-to-peer secure calling integrated directly into the chat interface, secured in transit via **DTLS-SRTP**.
+- **Data Security**: 
+  - **Media Encryption at Rest**: All uploaded files and profile photos are securely encrypted on the server's disk using AES-256-CBC and Fernet.
+  - **Text Encryption**: Database-level text encryption ensures message content remains secure at rest.
 - **Advanced Privacy Controls**: 
   - **Disappearing Messages**: Customizable timers for self-destructing chats.
   - **Granular Visibility**: Toggle visibility for Last Seen, Profile Photo, and "About" info.
@@ -122,9 +124,10 @@ Ensure your `.env` files in the respective service directories contain the follo
 | **User Service** | `PORT` | API Port | `5001` |
 | | `DATABASE_URL`| Postgres connection string | `postgres://...` |
 | | `JWT_SECRET` | Secret for token signing | `your_secret` |
+| | `ENCRYPTION_KEY` | Master key for AES-256 media encryption| `(Required)` |
 | **Chat Service** | `PORT` | API Port | `8000` |
 | | `MONGODB_URL` | MongoDB connection string| `mongodb://mongo:27017`|
-| | `ENCRYPTION_KEY` | Key for message text encryption| `(Required)` |
+| | `ENCRYPTION_KEY` | Key for message text & media encryption| `(Required)` |
 | | `PYTHONUNBUFFERED` | Docker logging config | `1` |
 
 ## 🔗 API Endpoints
