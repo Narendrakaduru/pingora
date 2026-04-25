@@ -151,7 +151,7 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.9, opacity: 0 }}
-      className="fixed inset-0 z-[150] bg-black flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center overflow-hidden"
     >
       {/* Top Controls */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/60 to-transparent">
@@ -267,7 +267,7 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute bottom-4 left-0 right-0 z-[60] flex justify-center"
+          className="absolute bottom-[calc(16px+env(safe-area-inset-bottom))] left-0 right-0 z-[60] flex justify-center"
         >
           <div className="w-1/2 flex items-center gap-3 relative">
             {/* Emoji Picker Popup */}
@@ -329,7 +329,7 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute bottom-8 left-0 right-0 flex justify-center z-[60]"
+          className="absolute bottom-[calc(32px+env(safe-area-inset-bottom))] left-0 right-0 flex justify-center z-[60]"
         >
           <button 
             onClick={fetchViewers}
@@ -365,9 +365,9 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute bottom-0 left-0 right-0 max-h-[60%] bg-[#121212] rounded-t-3xl z-50 flex flex-col border-t border-white/10"
+              className="absolute bottom-0 left-0 right-0 max-h-[70%] bg-[#121212] rounded-t-3xl z-50 flex flex-col border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
             >
-              <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto my-4" />
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto my-4" />
               <div className="px-6 pb-2 border-b border-white/5 flex items-center justify-between">
                 <h3 className="text-white font-bold text-lg">Viewed by</h3>
                 <span className="bg-white/10 px-3 py-1 rounded-full text-xs text-white/60">

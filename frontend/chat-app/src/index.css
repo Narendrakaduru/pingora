@@ -57,8 +57,10 @@
     background-color: rgb(var(--surface));
     color: rgb(var(--text-main));
     min-height: 100vh;
+    min-height: 100dvh;
     @apply selection:bg-primary/20;
     letter-spacing: -0.015em;
+    padding-top: env(safe-area-inset-top);
   }
 
   h1, h2, h3, h4, h5, h6 {

@@ -19,7 +19,7 @@ function App() {
     <Router>
       <AuthProvider>
         <SettingsProvider>
-          <div className="min-h-screen bg-white">
+          <div className="h-[100dvh] bg-white overflow-hidden relative">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />

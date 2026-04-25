@@ -566,7 +566,7 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
   return (
     <motion.div 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black overflow-hidden"
+      className="fixed inset-0 z-[500] bg-black overflow-hidden"
     >
       <div className="relative w-full h-full">
         

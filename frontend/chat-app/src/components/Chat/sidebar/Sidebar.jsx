@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   Search, Plus, Hash, Users, Clock, BellOff, Pin, Home, Calendar, 
   MessageSquare, Archive, Settings, User, LogOut, ChevronDown, Heart,
@@ -77,6 +78,14 @@ const Sidebar = ({
     { id: 'groups', icon: Users },
     { id: 'settings', icon: Settings },
     { id: 'contacts', icon: MessageCircle },
+  ];
+
+  const mobileNavItems = [
+    { id: 'chat', icon: MessageSquare },
+    { id: 'status', icon: CircleDashed },
+    { id: 'groups', icon: Users },
+    { id: 'contacts', icon: MessageCircle },
+    { id: 'settings', icon: Settings },
   ];
 
   const filteredPartners = dmPartners.filter(p => {
@@ -173,28 +182,38 @@ const Sidebar = ({
 
       {/* 1b. Bottom Nav Bar - MOBILE ONLY */}
       {!showMobileChat && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] bg-white border-t border-border flex items-center justify-around px-2 py-2 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] bg-surface-lowest/95 backdrop-blur-xl border-t border-border/50 flex items-center justify-around px-4 pt-2 pb-[calc(10px+env(safe-area-inset-bottom))] shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)]">
+          {mobileNavItems.map((item) => {
+            const isActive = activeView === item.id || (item.id === 'chat' && activeView === 'archive');
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id)}
+                className={`relative flex flex-col items-center p-3 rounded-2xl transition-all active:scale-90 ${isActive ? 'text-primary bg-primary/5' : 'text-text-light hover:text-text-soft'}`}
+              >
+                <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeNav"
+                    className="absolute -top-1 w-1 h-1 bg-primary rounded-full"
+                  />
+                )}
+              </button>
+            );
+          })}
+          
           <button
             onClick={() => setActiveView('profile')}
-            className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${activeView === 'profile' ? 'text-primary' : 'text-text-light'}`}
+            className={`flex flex-col items-center p-1 rounded-full transition-all active:scale-90 border-2 ${activeView === 'profile' ? 'border-primary' : 'border-transparent'}`}
           >
             {user.profilePhoto ? (
-              <img src={`${USER_API}${user.profilePhoto}`} alt="Profile" className="w-7 h-7 rounded-full object-cover border-2 border-primary/20" />
+              <img src={`${USER_API}${user.profilePhoto}`} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${activeView === 'profile' ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}>
                 {user.username[0].toUpperCase()}
               </div>
             )}
           </button>
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeView === item.id ? 'text-primary' : 'text-text-light'}`}
-            >
-              <item.icon size={22} />
-            </button>
-          ))}
         </div>
       )}
 
@@ -292,7 +311,7 @@ const Sidebar = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-20 md:pb-4">
+        <div className="flex-1 overflow-y-auto px-3 pb-[calc(100px+env(safe-area-inset-bottom))] md:pb-4">
           <div className="space-y-1">
             <div 
               onClick={() => setSelectedChat('general-chat')}

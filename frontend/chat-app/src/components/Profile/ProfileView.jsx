@@ -80,7 +80,7 @@ const ProfileView = ({ onBack }) => {
   return (
     <div className="flex-1 overflow-hidden bg-surface flex flex-col h-[100dvh]">
       {/* Header */}
-      <header className="h-20 md:h-24 flex items-center justify-between px-6 md:px-12 glass-header border-none shrink-0">
+      <header className="h-16 md:h-24 flex items-center justify-between px-4 md:px-12 glass-header border-none shrink-0">
         <div className="flex items-center gap-6">
           <button 
             onClick={onBack}
@@ -89,8 +89,8 @@ const ProfileView = ({ onBack }) => {
             <ArrowLeft size={24} />
           </button>
           <div className="flex flex-col">
-            <h2 className="text-2xl font-bold tracking-tight text-text-main leading-tight">Edit Profile</h2>
-            <p className="text-[10px] text-text-soft font-bold uppercase tracking-[0.2em] mt-0.5">Update your personal information</p>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-text-main leading-tight">Edit Profile</h2>
+            <p className="text-[9px] md:text-[10px] text-text-soft font-bold uppercase tracking-[0.2em] mt-0.5">Update your personal information</p>
           </div>
         </div>
       </header>
@@ -101,16 +101,16 @@ const ProfileView = ({ onBack }) => {
           initial={{ opacity: 0, scale: 0.98, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-2xl mx-auto space-y-8 md:space-y-12 pb-20"
+          className="max-w-2xl mx-auto space-y-6 md:space-y-12 pb-[calc(120px+env(safe-area-inset-bottom))]"
         >
           {/* Profile Details */}
-          <section className="bg-surface-lowest rounded-xl p-6 md:p-16 shadow-soft relative overflow-hidden">
+          <section className="bg-surface-lowest rounded-2xl p-5 md:p-16 shadow-soft relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container opacity-40" />
             
-            <div className="flex flex-col md:flex-row items-center gap-10 md:gap-14">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-14">
               {/* Profile Photo: Refined Framing */}
               <div className="relative group">
-                <div className="w-32 h-32 md:w-52 md:h-52 rounded-xl bg-surface-low p-2 overflow-hidden shadow-soft transition-transform duration-700">
+                <div className="w-28 h-28 md:w-52 md:h-52 rounded-2xl bg-surface-low p-1.5 overflow-hidden shadow-soft transition-transform duration-700">
                   {photoPreview ? (
                     <img src={photoPreview} alt="Profile" className="w-full h-full object-cover rounded-lg" />
                   ) : (
@@ -121,18 +121,18 @@ const ProfileView = ({ onBack }) => {
                 </div>
                 <button 
                    onClick={() => fileInputRef.current?.click()}
-                   className="absolute bottom-4 right-4 p-4 bg-primary text-white rounded-xl shadow-soft hover:bg-primary-dark transition-all scale-110 active:scale-95"
+                   className="absolute bottom-2 right-2 md:bottom-4 md:right-4 p-3 md:p-4 bg-primary text-white rounded-xl shadow-soft hover:bg-primary-dark transition-all scale-100 md:scale-110 active:scale-95"
                    title="Update Photo"
                 >
-                  <Camera size={24} />
+                  <Camera size={20} className="md:w-6 md:h-6" />
                 </button>
                 {photoPreview && (
                   <button 
                     onClick={handleRemovePhoto}
-                    className="absolute -bottom-2 -left-2 p-3 bg-red-500 text-white rounded-xl shadow-soft hover:bg-red-600 transition-all active:scale-95 z-10"
+                    className="absolute -top-2 -left-2 p-2 bg-red-500 text-white rounded-lg shadow-soft hover:bg-red-600 transition-all active:scale-95 z-10"
                     title="Remove Photo"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                   </button>
                 )}
                 <input 
@@ -147,7 +147,7 @@ const ProfileView = ({ onBack }) => {
               {/* Identity Info */}
               <div className="text-center md:text-left space-y-4 pt-4 md:pt-0">
                 <div className="space-y-1">
-                  <h3 className="text-4xl font-bold tracking-tight text-text-main">
+                  <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-text-main">
                     {user.username.charAt(0).toUpperCase() + user.username.slice(1)}
                   </h3>
                   <div className="flex items-center justify-center md:justify-start gap-2.5 text-text-soft">
@@ -165,14 +165,14 @@ const ProfileView = ({ onBack }) => {
           </section>
 
           {/* Settings Section */}
-          <section className="space-y-8">
+          <section className="space-y-4 md:space-y-8">
             <div className="flex items-center gap-4 px-2">
                <div className="w-1.5 h-6 bg-primary rounded-full opacity-60" />
-               <h4 className="text-lg font-bold tracking-tight text-text-soft uppercase tracking-[0.15em]">Profile Settings</h4>
+                <h4 className="text-base md:text-lg font-bold tracking-tight text-text-soft uppercase tracking-[0.15em]">Profile Settings</h4>
             </div>
 
-            <div className="bg-surface-lowest rounded-xl p-6 md:p-12 shadow-soft">
-              <form onSubmit={handleSave} className="space-y-10">
+            <div className="bg-surface-lowest rounded-2xl p-5 md:p-12 shadow-soft">
+              <form onSubmit={handleSave} className="space-y-8 md:space-y-10">
                 <div className="space-y-3">
                   <label className="text-[11px] font-bold text-text-light uppercase tracking-[0.2em] ml-1">Full Name</label>
                   <div className="relative group">
@@ -180,7 +180,7 @@ const ProfileView = ({ onBack }) => {
                     <input 
                       type="text" 
                       placeholder="Enter your full name"
-                      className="organic-input !pl-14 !pr-14 h-14 md:!h-16 text-base md:text-lg w-full"
+                      className="organic-input !pl-14 !pr-14 h-12 md:!h-16 text-base md:text-lg w-full"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
