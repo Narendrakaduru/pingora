@@ -30,12 +30,18 @@ router.post('/reset-password', resetPassword);
 router.get('/me', protect, getMe);
 router.get('/users', protect, getUsers);
 router.put('/profile', protect, upload.single('profilePhoto'), updateProfile);
-router.get('/uploads/:userId/photo/:filename', (req, res) => {
-  const { userId, filename } = req.params;
+router.get('/uploads/:userId/:type/:filename', (req, res) => {
+  const { userId, type, filename } = req.params;
+  
+  // Validate type to prevent directory traversal
+  if (type !== 'photo' && type !== 'status') {
+    return res.sendStatus(403);
+  }
+
   const fs = require('fs');
   const path = require('path');
   const { decrypt } = require('../utils/encryption');
-  const filePath = path.join('uploads', userId, 'photo', filename);
+  const filePath = path.join('uploads', userId, type, filename);
   
   if (!fs.existsSync(filePath)) return res.sendStatus(404);
   
@@ -43,8 +49,8 @@ router.get('/uploads/:userId/photo/:filename', (req, res) => {
   const decryptedContent = decrypt(encryptedContent);
   
   const mime = require('mime-types');
-  const type = mime.lookup(filename) || 'application/octet-stream';
-  res.set('Content-Type', type);
+  const fileType = mime.lookup(filename) || 'application/octet-stream';
+  res.set('Content-Type', fileType);
   res.send(decryptedContent);
 });
 router.post('/toggle-pro', protect, toggleProStatus);

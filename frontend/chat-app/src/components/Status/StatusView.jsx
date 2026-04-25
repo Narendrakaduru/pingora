@@ -101,10 +101,75 @@ const StatusView = ({ user, onBack }) => {
   const myStatusGroup = groupedStatuses.find(g => g.user.username === user.username);
   const otherStatuses = groupedStatuses.filter(g => g.user.username !== user.username);
 
-  const getStatusBorderClass = (group) => {
-    if (!group) return 'border-dashed border-text-light/30';
-    const allViewed = group.statuses.every(s => s.viewers && s.viewers.map(String).includes(String(user.id)));
-    return allViewed ? 'border-text-light/30' : 'border-primary';
+  const StatusAvatar = ({ group, displayUser }) => {
+    // If no statuses exist (e.g. My Status with 0 updates)
+    if (!group || group.statuses.length === 0) {
+      return (
+        <div className="relative w-16 h-16 rounded-full p-1 border-2 border-dashed border-text-light/30 flex items-center justify-center">
+          {displayUser.profilePhoto ? (
+            <img src={`${USER_API}${displayUser.profilePhoto}`} className="w-full h-full rounded-full object-cover" alt="" />
+          ) : (
+            <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
+              {displayUser.username[0].toUpperCase()}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const count = group.statuses.length;
+    const radius = 30; // 64/2 - strokeWidth/2
+    const circumference = 2 * Math.PI * radius;
+    // Provide a noticeable gap if there are multiple segments
+    const gap = count > 1 ? 6 : 0; 
+    const segmentLength = (circumference / count) - gap;
+
+    return (
+      <div className="relative w-16 h-16 rounded-full flex items-center justify-center">
+        <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 64 64">
+          {group.statuses.map((status, idx) => {
+            const isViewed = status.viewers && status.viewers.map(String).includes(String(user.id));
+            const strokeColor = isViewed ? "stroke-text-light/30" : "stroke-primary";
+            const offset = (circumference / count) * idx;
+
+            return (
+              <circle
+                key={status.id}
+                cx="32"
+                cy="32"
+                r={radius}
+                fill="transparent"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                className={`transition-colors duration-300 ${strokeColor}`}
+                strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+                strokeDashoffset={-offset}
+              />
+            );
+          })}
+        </svg>
+        <div className="w-[54px] h-[54px] rounded-full overflow-hidden p-0.5 bg-surface">
+          <div className="w-full h-full rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+            {displayUser.profilePhoto ? (
+              <img src={`${USER_API}${displayUser.profilePhoto}`} className="w-full h-full object-cover" alt="" />
+            ) : (
+              <span className="font-bold text-primary text-xl">{displayUser.username[0].toUpperCase()}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getInitialIndex = (group) => {
+    if (!group) return 0;
+    if (group.user.username.toLowerCase() === user.username.toLowerCase()) return 0;
+    
+    const firstUnviewed = group.statuses.findIndex(s => {
+      return !s.viewers || !s.viewers.map(String).includes(String(user.id));
+    });
+    
+    return firstUnviewed === -1 ? 0 : firstUnviewed;
   };
 
   return (
@@ -126,15 +191,7 @@ const StatusView = ({ user, onBack }) => {
               className="relative cursor-pointer"
               onClick={() => myStatusGroup && setActiveStatusUser(myStatusGroup)}
             >
-              <div className={`w-16 h-16 rounded-full p-1 border-2 ${getStatusBorderClass(myStatusGroup)}`}>
-                {user.profilePhoto ? (
-                  <img src={`${USER_API}${user.profilePhoto}`} className="w-full h-full rounded-full object-cover" alt="" />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
-                    {user.username[0].toUpperCase()}
-                  </div>
-                )}
-              </div>
+              <StatusAvatar group={myStatusGroup} displayUser={user} />
               <button 
                 onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
                 className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-surface shadow-sm"
@@ -176,15 +233,7 @@ const StatusView = ({ user, onBack }) => {
                   onClick={() => setActiveStatusUser(group)}
                   className="w-full flex items-center gap-4 p-2 hover:bg-surface-high/20 rounded-2xl transition-all text-left group"
                 >
-                  <div className={`w-16 h-16 rounded-full p-1 border-2 ${getStatusBorderClass(group)}`}>
-                    {group.user.profilePhoto ? (
-                      <img src={`${USER_API}${group.user.profilePhoto}`} className="w-full h-full rounded-full object-cover" alt="" />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
-                        {group.user.username[0].toUpperCase()}
-                      </div>
-                    )}
-                  </div>
+                  <StatusAvatar group={group} displayUser={group.user} />
                   <div className="flex-1">
                     <h4 className="font-bold text-text-main group-hover:text-primary transition-colors">{group.user.fullName || group.user.username}</h4>
                     <p className="text-sm text-text-soft">
@@ -296,6 +345,7 @@ const StatusView = ({ user, onBack }) => {
         {activeStatusUser && (
           <StatusPlayer 
             group={activeStatusUser} 
+            initialIndex={getInitialIndex(activeStatusUser)}
             onClose={() => {
               setActiveStatusUser(null);
               fetchStatuses(); // Refresh statuses to update 'viewed' states

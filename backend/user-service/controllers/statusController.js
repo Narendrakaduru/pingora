@@ -27,6 +27,14 @@ const createStatus = async (req, res) => {
     
     let statusContent = content;
     if (req.file) {
+      const { encrypt } = require('../utils/encryption');
+      const fs = require('fs');
+      const filePath = req.file.path;
+      
+      const buffer = fs.readFileSync(filePath);
+      const encryptedBuffer = encrypt(buffer);
+      fs.writeFileSync(filePath, encryptedBuffer);
+
       statusContent = `/uploads/${userId}/status/${req.file.filename}`;
     }
 

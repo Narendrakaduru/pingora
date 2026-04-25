@@ -1703,12 +1703,12 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                         </div>
 
                         {ticket.adminFeedback && (
-                          <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 space-y-1.5 relative overflow-hidden">
+                          <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 space-y-2 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
                               <ShieldCheck size={24} />
                             </div>
                             <p className="text-[9px] font-black uppercase tracking-widest text-primary">Admin Response</p>
-                            <p className="text-[11px] text-text-main font-medium leading-relaxed italic">"{ticket.adminFeedback}"</p>
+                            <div className="text-xs text-text-main font-medium leading-relaxed whitespace-pre-wrap">{ticket.adminFeedback}</div>
                           </div>
                         )}
 

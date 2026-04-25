@@ -3,8 +3,8 @@ import { X, ChevronLeft, ChevronRight, Trash2, Eye, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { USER_API, STATUS_API } from '../../utils/chatUtils';
 
-const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete, initialIndex = 0 }) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [showViewers, setShowViewers] = useState(false);
@@ -15,11 +15,11 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete 
   
   // Reset index when group changes
   useEffect(() => {
-    setCurrentIndex(0);
+    setCurrentIndex(initialIndex);
     setProgress(0);
     setShowViewers(false);
     setViewers([]);
-  }, [group.user.username]);
+  }, [group.user.username, initialIndex]);
 
   const currentStatus = group.statuses[currentIndex];
 
