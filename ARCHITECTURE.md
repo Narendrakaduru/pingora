@@ -166,7 +166,7 @@ flowchart TD
     subgraph Messaging
         A([Sender]) --> B[WS: emit 'send_message']
         B --> C[Chat Service]
-        C --> D{Privacy & Block Check (via US)}
+        C --> D{"Privacy & Block Check (via US)"}
         D -- "Blocked/Not Friend" --> F[WS: emit 'error']
         D -- "Allowed" --> G[Encrypt & Persist to MongoDB]
         G --> H[WS: emit 'new_message' to Room/Recipient]
@@ -176,13 +176,12 @@ flowchart TD
     subgraph WebRTC Calls
         W1([Caller]) --> W2[WS: emit 'call_request']
         W2 --> W3[Chat Service Signalling]
-        W3 --> W4{Check Friendship}
+        W3 --> W4{"Check Friendship"}
         W4 -- "Allowed" --> W5[WS: relay to Callee]
         W5 --> W6([Callee])
         W6 -. "webrtc_signal (SDP/ICE)" .-> W3
         W3 -. "relay" .-> W1
-        W1 ==== W6
-        note right of W1: Peer-to-Peer E2EE Media Stream (DTLS-SRTP)
+        W1 == "Peer-to-Peer E2EE Media Stream (DTLS-SRTP)" === W6
     end
 ```
 
