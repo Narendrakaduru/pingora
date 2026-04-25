@@ -6,7 +6,7 @@
 export const getRoomId = (chat, currentUsername) => {
   if (!chat) return null;
   if (chat === 'general-chat') return 'general-chat';
-  if (typeof chat === 'object' && chat._id) return chat._id; // Group ID
+  if (chat && typeof chat === 'object' && chat._id) return chat._id; // Group ID
   
   const otherUser = typeof chat === 'string' ? chat : chat.username;
   if (!otherUser) return null;

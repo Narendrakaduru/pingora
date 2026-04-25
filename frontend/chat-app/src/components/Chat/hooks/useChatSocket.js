@@ -352,7 +352,7 @@ export const useChatSocket = ({
 
     // AbortController prevents stale fetch from overwriting a newer room's messages
     const controller = new AbortController();
-    fetch(`${API_BASE}/messages?room=${encodeURIComponent(roomId)}`, { signal: controller.signal })
+    fetch(`${API_BASE}/messages?room=${encodeURIComponent(roomId)}&username=${user.username}`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         // Double-check we're still on this room (guard against rapid switching)

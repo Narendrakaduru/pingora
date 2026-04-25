@@ -396,8 +396,19 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif msg_type in ["call_request", "call_response", "webrtc_signal", "call_hangup", "call_handled"]:
                 target_user = message_data.get("target")
                 if target_user:
+                    # Check if it's a group call
+                    is_group_target = False
+                    group_data = None
+                    try:
+                        if len(target_user) == 24:
+                            group_data = await db.groups.find_one({"_id": ObjectId(target_user)})
+                            if group_data:
+                                is_group_target = True
+                    except:
+                        pass
+
                     # ── Block check for calls ────────────────────────────
-                    if msg_type == "call_request":
+                    if msg_type == "call_request" and not is_group_target:
                         privacy_info = await get_user_privacy_info(target_user, username)
                         if not privacy_info.get("exists", True):
                             await manager.send_personal_message({
@@ -422,8 +433,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         
                         is_friend = privacy_info.get("isFriend", False)
                         if not is_friend:
-                             # For now, let's also block calls from non-friends if we want to be strict
-                             # Based on "only then each other can send messages, see status", calls are usually considered messages too
                              await manager.send_personal_message({
                                 "type": "call_hangup",
                                 "from": target_user,
@@ -432,6 +441,21 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             }, username)
                              print(f"[friend-check] call from {username} to {target_user} blocked (not friends)")
                              continue
+
+                    # Handle group broadcast for call_request and call_hangup
+                    if is_group_target and msg_type in ["call_request", "call_hangup"]:
+                        # Ensure sender is a member
+                        if username.lower() not in [m.lower() for m in group_data.get("members", [])]:
+                            continue
+                        
+                        for member in group_data["members"]:
+                            if member.lower() != username.lower():
+                                out_msg = message_data.copy()
+                                out_msg["from"] = username
+                                out_msg["is_group_call"] = True
+                                out_msg["group_id"] = target_user
+                                await manager.send_personal_message(out_msg, member)
+                        continue
 
                     print(f"SIGNAL [{msg_type}]: {username} -> {target_user}")
                     if msg_type == "webrtc_signal":

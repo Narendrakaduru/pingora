@@ -79,6 +79,7 @@ class UserRoomSettings(BaseModel):
     is_favourite: bool = False
     labels: List[str] = []
     last_read_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    clear_timestamp: Optional[datetime] = None
 
     class Config:
         populate_by_name = True

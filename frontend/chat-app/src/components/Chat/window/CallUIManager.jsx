@@ -15,7 +15,13 @@ const CallUIManager = ({
     <>
       <AnimatePresence>
         {incomingCall && (
-          <IncomingCallOverlay call={incomingCall} onAccept={acceptCall} onReject={rejectCall} getUser={getUser} />
+          <IncomingCallOverlay 
+            call={incomingCall} 
+            onAccept={acceptCall} 
+            onReject={rejectCall} 
+            getUser={getUser} 
+            dmPartners={dmPartners} 
+          />
         )}
       </AnimatePresence>
 

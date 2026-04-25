@@ -32,7 +32,7 @@ import GroupMembersPanel from '../Groups/GroupMembersPanel';
 import { getRoomId, formatFileSize, API_BASE } from '../../utils/chatUtils';
 import { 
   togglePin, toggleMute, toggleArchive, 
-  clearChatMessages, deleteChatRoom, deleteGroup,
+  clearChatMessages, deleteChatRoom, deleteGroup, leaveGroup,
   updateDisappearingTime as updateDisappearingTime_api,
   toggleFavourite, updateChatLabel,
   sendFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriendUser,
@@ -200,7 +200,7 @@ const ChatBox = () => {
   const friendship = partnerId 
     ? friendships.find(f => f.user1Id === partnerId || f.user2Id === partnerId)
     : null;
-  const isFriend = !selectedChat || selectedChat === 'general-chat' || (typeof selectedChat === 'object' && selectedChat._id) || friendship?.status === 'accepted';
+  const isFriend = !selectedChat || selectedChat === 'general-chat' || (selectedChat && typeof selectedChat === 'object' && selectedChat._id) || friendship?.status === 'accepted';
   const isPending = friendship?.status === 'pending';
   const iSentRequest = isPending && friendship?.requestSenderId === user.id;
 
@@ -322,7 +322,7 @@ const ChatBox = () => {
     const target = chatObj || selectedChat;
     if (!target) return;
 
-    const isGroup = typeof target === 'object' && target._id;
+    const isGroup = target && typeof target === 'object' && target._id;
     const rId = isGroup ? target._id : getRoomId(target, user.username);
     
     // Resolve full data to get settings
@@ -384,7 +384,7 @@ const ChatBox = () => {
               handleSelectChat('general-chat');
               showToast('Chat deleted');
             } else {
-              await clearChatMessages(rId);
+              await clearChatMessages(user.username, rId);
               setMessages([]);
               showToast('Chat cleared');
             }
@@ -414,6 +414,18 @@ const ChatBox = () => {
       } else if (action === 'edit_group') {
           setEditingGroupSettings(target);
           setShowGroupSettingsModal(true);
+      } else if (action === 'exit_group') {
+          setConfirmModal({
+            visible: true, title: 'Exit Group',
+            message: `Are you sure you want to leave "${targetName}"?`,
+            onConfirm: async () => {
+              setConfirmModal(prev => ({ ...prev, visible: false }));
+              await leaveGroup(target._id, user.username);
+              handleSelectChat('general-chat');
+              showToast('Left group successfully');
+              refreshPartners();
+            }
+          });
       } else if (action === 'unfriend') {
         if (!friendship) return;
         setConfirmModal({
@@ -580,7 +592,7 @@ const ChatBox = () => {
             message: 'Are you sure you want to clear all messages? This cannot be undone.',
             onConfirm: async () => {
               setConfirmModal(prev => ({ ...prev, visible: false }));
-              await clearChatMessages(rId);
+              await clearChatMessages(user.username, rId);
               if (selectedChat === (type === 'dm' ? chat.username : chat)) {
                 setMessages([]);
               }
@@ -1009,7 +1021,7 @@ const ChatBox = () => {
                     currentChatName={
                       typeof selectedChat === 'string' 
                         ? (getUser(selectedChat)?.fullName || selectedChat) 
-                        : (selectedChat.name || selectedChat.username)
+                        : (selectedChat?.name || selectedChat?.username || '')
                     }
                   />
                 )}

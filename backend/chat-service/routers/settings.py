@@ -17,11 +17,21 @@ async def get_or_create_settings(username: str, room_id: str):
             "is_archived": False,
             "is_favourite": False,
             "labels": [],
-            "last_read_timestamp": datetime.now(timezone.utc)
+            "last_read_timestamp": datetime.now(timezone.utc),
+            "clear_timestamp": None
         }
         await db.user_settings.insert_one(new_settings)
         return new_settings
     return settings
+
+@router.post("/clear")
+async def clear_chat(username: str, room_id: str):
+    await get_or_create_settings(username, room_id)
+    await db.user_settings.update_one(
+        {"username": username.lower(), "room_id": room_id},
+        {"$set": {"clear_timestamp": datetime.now(timezone.utc)}}
+    )
+    return {"success": True}
 
 @router.post("/pin")
 async def toggle_pin(username: str, room_id: str, pin: bool):

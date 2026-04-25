@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form
-from typing import List
+from typing import List, Optional
 from database import db
 from datetime import datetime, timezone
 import os, shutil, json
@@ -21,12 +21,29 @@ CATEGORY_MAP = {
 }
 
 @router.get("/messages", response_model=List[dict])
-async def get_messages(room: str = "general-chat"):
-    # 1. Fetch newest 100 messages
-    latest_messages = await db.messages.find({"room": room}).sort("timestamp", -1).to_list(100)
+async def get_messages(room: str = "general-chat", username: Optional[str] = None):
+    query = {"room": room}
     
-    # 2. Fetch ALL pinned messages in this room (to ensure they are available for the pinned messages bar)
-    pinned_messages = await db.messages.find({"room": room, "is_pinned": True}).to_list(50)
+    # Check for soft clear timestamp
+    if username:
+        settings = await db.user_settings.find_one({"username": username.lower(), "room_id": room})
+        if settings and settings.get("clear_timestamp"):
+            # MongoDB can compare ISO strings or datetime objects. 
+            # Our timestamps in DB are ISO strings (isoformat).
+            query["timestamp"] = {"$gt": settings["clear_timestamp"].isoformat() if isinstance(settings["clear_timestamp"], datetime) else settings["clear_timestamp"]}
+
+    # 1. Fetch newest 100 messages
+    latest_messages = await db.messages.find(query).sort("timestamp", -1).to_list(100)
+    
+    # 2. Fetch ALL pinned messages in this room
+    # (Pinned messages should also obey the clear rule for this user)
+    pinned_query = {"room": room, "is_pinned": True}
+    if username:
+        settings = await db.user_settings.find_one({"username": username.lower(), "room_id": room})
+        if settings and settings.get("clear_timestamp"):
+             pinned_query["timestamp"] = {"$gt": settings["clear_timestamp"].isoformat() if isinstance(settings["clear_timestamp"], datetime) else settings["clear_timestamp"]}
+             
+    pinned_messages = await db.messages.find(pinned_query).to_list(50)
     
     # 3. Merge and deduplicate
     unique_messages = {str(m["_id"]): m for m in (latest_messages + pinned_messages)}

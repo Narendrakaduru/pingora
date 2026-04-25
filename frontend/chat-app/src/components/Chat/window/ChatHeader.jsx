@@ -4,7 +4,7 @@ import {
   ArrowLeft, Users, Clock, Phone, Video, MoreVertical, 
   Trash2, Archive, Pencil, AlertTriangle, Search, Info, 
   CheckSquare, BellOff, Heart, LayoutList, XCircle, 
-  ThumbsDown, Ban, MinusCircle
+  ThumbsDown, Ban, MinusCircle, LogOut
 } from 'lucide-react';
 import { useSettings } from '../../../context/SettingsContext';
 
@@ -72,7 +72,7 @@ const ChatHeader = ({
     return `Last seen ${isToday ? 'today at ' + tStr : d.toLocaleDateString()}`;
   };
 
-  const targetData = isGroup ? selectedChat : dmPartners.find(p => p.username.toLowerCase() === selectedChat.toLowerCase());
+  const targetData = isGroup ? selectedChat : (typeof selectedChat === 'string' ? dmPartners.find(p => p.username.toLowerCase() === selectedChat.toLowerCase()) : null);
   const chatSettings = targetData?.settings || {};
 
   const menuItems = [
@@ -94,10 +94,18 @@ const ChatHeader = ({
       ] : [])
     ] : isGroup ? [
       { id: 'group_info', label: 'Group Info', icon: Info },
-      { id: 'disappearing', label: 'Disappearing Messages', icon: Clock },
+      { id: 'search', label: 'Search', icon: Search },
+      { id: 'select', label: 'Select messages', icon: CheckSquare },
+      { id: 'mute', label: chatSettings.is_muted ? 'Unmute notifications' : 'Mute notifications', icon: BellOff },
+      { id: 'disappearing', label: 'Disappearing messages', icon: Clock },
+      { id: 'favourite', label: chatSettings.is_favourite ? 'Remove from favourites' : 'Add to favourites', icon: Heart },
+      { id: 'change_list', label: 'Change list', icon: LayoutList },
       { id: 'edit_group', label: 'Group Settings', icon: Pencil },
-      { id: 'archive', label: 'Archive Group', icon: Archive },
+      { id: 'archive', label: chatSettings.is_archived ? 'Unarchive Group' : 'Archive Group', icon: Archive },
+      { id: 'close', label: 'Close chat', icon: XCircle, isHighlighted: true },
       { type: 'divider' },
+      { id: 'clear', label: 'Clear chat', icon: MinusCircle, color: 'text-red-500' },
+      { id: 'exit_group', label: 'Exit Group', icon: LogOut, color: 'text-red-500' },
       { id: 'delete_group', label: 'Delete Group', icon: AlertTriangle, color: 'text-red-500' }
     ] : [
       { id: 'clear', label: 'Clear Chat History', icon: Trash2 },
@@ -141,7 +149,7 @@ const ChatHeader = ({
                   <img src={`${USER_API}${currentPartner.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-primary/5 flex items-center justify-center">
-                    {(typeof selectedChat === 'string' ? selectedChat[0] : (selectedChat.username?.[0] || 'D')).toUpperCase()}
+                    {(typeof selectedChat === 'string' ? selectedChat[0] : (selectedChat?.username?.[0] || selectedChat?.name?.[0] || 'D')).toUpperCase()}
                   </div>
                 );
               })()
@@ -175,7 +183,7 @@ const ChatHeader = ({
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {!isGeneralChat && !isGroup && (
+        {!isGeneralChat && (
           <div className="flex items-center bg-surface-high/30 p-1.5 rounded-xl">
             <button 
               onClick={() => initiateCall('voice')}

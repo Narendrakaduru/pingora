@@ -352,7 +352,7 @@ const Sidebar = ({
             )}
 
             {filteredGroups.map((group) => {
-              const isSelectedGroup = typeof selectedChat === 'object' && selectedChat._id === group._id;
+              const isSelectedGroup = selectedChat && typeof selectedChat === 'object' && selectedChat._id === group._id;
               const lastMsgTime = group.lastMessage?.timestamp ? new Date(group.lastMessage.timestamp).getTime() : 0;
               const lastReadTime = group.settings?.last_read_timestamp ? new Date(group.settings.last_read_timestamp).getTime() : 0;
               const isUnreadGroup = group.lastMessage?.username !== user.username && lastMsgTime > lastReadTime;

@@ -1,10 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, X, Video, Activity } from 'lucide-react';
+import { Phone, X, Video, Activity, Users } from 'lucide-react';
 import ringtone from '../../assets/notifications/teams_call.mp3';
 
-const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
+const IncomingCallOverlay = ({ call, onAccept, onReject, getUser, dmPartners = [] }) => {
   const audioRef = useRef(null);
+
+  const groupInfo = call.is_group_call ? dmPartners.find(p => p._id === call.group_id) : null;
+  const callerUser = getUser ? getUser(call.from) : null;
+  const displayName = groupInfo ? groupInfo.name : (callerUser?.fullName || `@${call.from}`);
+  const subText = groupInfo ? `Incoming group ${call.type} call` : `Incoming ${call.type} call...`;
+  const callerLabel = groupInfo ? `@${call.from} is calling the group` : `@${call.from}`;
 
   useEffect(() => {
     const audio = new Audio(ringtone);
@@ -55,11 +61,15 @@ const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
         <div className="relative">
            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" />
            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-surface-low border border-primary/10 flex items-center justify-center text-primary relative z-10 duration-500 overflow-hidden">
-             {getUser && getUser(call.from)?.profilePhoto ? (
-                <img src={`/api/auth${getUser(call.from).profilePhoto}`} alt="" className="w-full h-full object-cover" />
+             {groupInfo ? (
+                <div className="w-full h-full bg-primary/5 flex items-center justify-center">
+                   <Users size={32} />
+                </div>
+             ) : callerUser?.profilePhoto ? (
+                <img src={`/api/auth${callerUser.profilePhoto}`} alt="" className="w-full h-full object-cover" />
              ) : (
                 <div className="w-full h-full bg-primary/10 flex items-center justify-center font-bold text-lg md:text-2xl text-primary uppercase">
-                   {call.from[0]}
+                   {(displayName[0] || 'U').toUpperCase()}
                 </div>
              )}
            </div>
@@ -68,10 +78,10 @@ const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
         <div className="flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2 text-primary mb-1">
              <Activity size={14} className="animate-pulse" />
-             <p className="text-[10px] font-bold uppercase tracking-[0.3em]">Incoming Call</p>
+             <p className="text-[10px] font-bold uppercase tracking-[0.3em]">{groupInfo ? 'Group Call' : 'Incoming Call'}</p>
           </div>
-          <h4 className="text-xl font-bold tracking-tight text-text-main truncate">@{call.from}</h4>
-          <p className="text-[10px] font-bold text-text-soft uppercase tracking-[0.1em] opacity-60 mt-0.5">Incoming {call.type} Call...</p>
+          <h4 className="text-xl font-bold tracking-tight text-text-main truncate">{displayName}</h4>
+          <p className="text-[10px] font-bold text-text-soft uppercase tracking-[0.1em] opacity-60 mt-0.5">{groupInfo ? callerLabel : subText}</p>
         </div>
 
         <div className="flex items-center gap-3 relative z-10">

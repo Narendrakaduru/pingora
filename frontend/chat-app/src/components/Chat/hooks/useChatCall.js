@@ -42,17 +42,11 @@ export const useChatCall = (user, wsRef, selectedChat) => {
   const initiateCall = useCallback((type, overrideTarget = null) => {
     // Resolve target username correctly if selectedChat is an object
     const effectiveChat = overrideTarget || selectedChat;
-    const targetName = typeof effectiveChat === 'object' ? (effectiveChat.username || effectiveChat.name) : effectiveChat;
+    const isGroup = effectiveChat && typeof effectiveChat === 'object' && effectiveChat._id && !effectiveChat.username;
+    const targetName = typeof effectiveChat === 'object' ? (effectiveChat.username || effectiveChat._id || effectiveChat.name) : effectiveChat;
     
     if (!targetName || targetName === 'general-chat') return;
     
-    // Only allow calls for DMs (not groups)
-    const isGroup = typeof selectedChat === 'object' && selectedChat._id && !selectedChat.username;
-    if (isGroup) {
-      console.warn("Calls are not supported in group chats yet");
-      return;
-    }
-
     const cId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     activeCallIdRef.current = cId;
     setCallError(null);
@@ -60,9 +54,10 @@ export const useChatCall = (user, wsRef, selectedChat) => {
     
     wsRef.current.send(JSON.stringify({
       type: 'call_request',
-      target: targetName.toLowerCase(),
+      target: isGroup ? targetName : targetName.toLowerCase(),
       call_type: type,
-      call_id: cId
+      call_id: cId,
+      is_group_call: isGroup
     }));
   }, [selectedChat, wsRef]);
 

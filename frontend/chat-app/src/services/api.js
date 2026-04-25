@@ -65,6 +65,11 @@ export const deleteGroup = async (groupId, requester) => {
     return response.data;
 };
 
+export const leaveGroup = async (groupId, username) => {
+    const response = await axios.post(`${API_BASE}/groups/${groupId}/leave?username=${username.toLowerCase()}`);
+    return response.data;
+};
+
 // Chat Settings & Management
 export const togglePin = async (username, roomId, pin) => {
     const response = await axios.post(`${API_BASE}/settings/pin?username=${username.toLowerCase()}&room_id=${roomId}&pin=${pin}`);
@@ -106,8 +111,8 @@ export const updateDisappearingTime = async (username, roomId, time) => {
     return response.data;
 };
 
-export const clearChatMessages = async (roomId) => {
-    const response = await axios.delete(`${API_BASE}/messages/room/${roomId}`);
+export const clearChatMessages = async (username, roomId) => {
+    const response = await axios.post(`${API_BASE}/settings/clear?username=${username.toLowerCase()}&room_id=${roomId}`);
     return response.data;
 };
 

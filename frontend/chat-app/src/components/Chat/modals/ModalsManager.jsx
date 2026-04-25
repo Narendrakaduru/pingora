@@ -284,7 +284,7 @@ const ModalsManager = ({
         currentChatName={
           typeof selectedChat === 'string' 
             ? (getUser(selectedChat)?.fullName || selectedChat) 
-            : (selectedChat.name || selectedChat.username)
+            : (selectedChat?.name || selectedChat?.username || '')
         }
       />
     </>

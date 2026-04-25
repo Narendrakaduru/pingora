@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from database import db
+from datetime import datetime, timezone
 from utils import decrypt_text
 
 router = APIRouter()
@@ -34,9 +35,14 @@ async def get_active_dm_partners(username: str):
         if partner_username:
             partner_settings = await db.user_settings.find_one({"username": partner_username, "room_id": room_id})
         
-        # 3. Get the very last message for this room
+        # 3. Get the very last message for this room (respecting soft clear)
+        msg_query = {"room": room_id}
+        if user_settings and user_settings.get("clear_timestamp"):
+            ct = user_settings["clear_timestamp"]
+            msg_query["timestamp"] = {"$gt": ct.isoformat() if isinstance(ct, datetime) else ct}
+
         last_msg = await db.messages.find_one(
-            {"room": room_id},
+            msg_query,
             sort=[("timestamp", -1)]
         )
         

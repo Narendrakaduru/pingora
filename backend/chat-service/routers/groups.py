@@ -33,8 +33,13 @@ async def get_user_groups(username: str):
             settings["_id"] = str(settings["_id"])
             g["settings"] = settings
             
-        # Stitch Last Message for Unread states & Previews
-        cursor_msg = db.messages.find({"room": g_id}).sort("timestamp", -1).limit(1)
+        # Stitch Last Message for Unread states & Previews (respecting soft clear)
+        msg_query = {"room": g_id}
+        if settings and settings.get("clear_timestamp"):
+            ct = settings["clear_timestamp"]
+            msg_query["timestamp"] = {"$gt": ct.isoformat() if isinstance(ct, datetime) else ct}
+
+        cursor_msg = db.messages.find(msg_query).sort("timestamp", -1).limit(1)
         last_msgs = await cursor_msg.to_list(length=1)
         if last_msgs:
             last_msg = last_msgs[0]
@@ -75,3 +80,32 @@ async def delete_group(group_id: str, requester: str):
         
     await db.groups.delete_one({"_id": ObjectId(group_id)})
     return {"message": "Group deleted successfully"}
+
+@router.post("/groups/{group_id}/leave")
+async def leave_group(group_id: str, username: str):
+    group = await db.groups.find_one({"_id": ObjectId(group_id)})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    if username not in group["members"]:
+        raise HTTPException(status_code=400, detail="User is not a member of this group")
+    
+    await db.groups.update_one(
+        {"_id": ObjectId(group_id)},
+        {"$pull": {"members": username}}
+    )
+    
+    # If creator left, reassign or delete
+    updated_group = await db.groups.find_one({"_id": ObjectId(group_id)})
+    if updated_group:
+        if updated_group["created_by"] == username:
+            if updated_group["members"]:
+                await db.groups.update_one(
+                    {"_id": ObjectId(group_id)},
+                    {"$set": {"created_by": updated_group["members"][0]}}
+                )
+            else:
+                await db.groups.delete_one({"_id": ObjectId(group_id)})
+                return {"message": "Group deleted as last member left"}
+    
+    return {"message": "Left group successfully"}
