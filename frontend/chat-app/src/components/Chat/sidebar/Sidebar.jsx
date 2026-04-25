@@ -119,33 +119,45 @@ const Sidebar = ({
     return true;
   });
 
-  const formatLastMessage = (lastMsg, defaultText) => {
+  const renderLastMessage = (lastMsg, defaultText) => {
     if (!lastMsg) return defaultText;
     if (lastMsg.is_deleted) return 'Message deleted';
     
-    // Handle reaction summaries (both virtual and server-side)
+    let text = '';
+    const isMe = lastMsg.username === user.username;
+
     if ((lastMsg.is_reaction_snippet || lastMsg.type === 'reaction_summary') && lastMsg.text) {
-       const isMe = lastMsg.username === user.username;
-       // Replace the raw username with "You" or formatted name
-       const formattedText = lastMsg.text.replace(new RegExp(`^${lastMsg.username}`, 'i'), isMe ? 'You' : lastMsg.username.charAt(0).toUpperCase() + lastMsg.username.slice(1));
-       return formattedText;
+       text = lastMsg.text.replace(new RegExp(`^${lastMsg.username}`, 'i'), isMe ? 'You' : lastMsg.username.charAt(0).toUpperCase() + lastMsg.username.slice(1));
+    } else if (lastMsg.type === 'system') {
+       text = lastMsg.text;
+    } else {
+      const prefix = isMe ? 'You: ' : '';
+      const msgType = lastMsg.message_type || lastMsg.type;
+      
+      let typeText = '';
+      if (['image', 'photo'].includes(msgType)) typeText = '🖼️ Photo';
+      else if (msgType === 'video') typeText = '🎥 Video';
+      else if (msgType === 'audio') typeText = '🎵 Voice Message';
+      else if (msgType === 'document') typeText = '📄 Document';
+      else if (msgType === 'poll') typeText = `📊 Poll: ${lastMsg.metadata?.question || 'Untitled'}`;
+      
+      text = prefix + (typeText || lastMsg.text || defaultText);
     }
 
-    // Handle system messages
-    if (lastMsg.type === 'system') return lastMsg.text;
+    if (lastMsg.metadata?.reply_to_status) {
+      const prefix = isMe ? 'You: ' : '';
+      const content = text.startsWith(prefix) ? text.slice(prefix.length) : text;
+      
+      return (
+        <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+          {prefix && <span className="shrink-0">{prefix}</span>}
+          <CircleDashed size={12} className="text-primary shrink-0" strokeWidth={3} />
+          <span className="truncate">{content}</span>
+        </span>
+      );
+    }
 
-    // Construct the type-based prefix
-    let prefix = lastMsg.username === user.username ? 'You: ' : '';
-    
-    // Check message type for non-text content
-    const msgType = lastMsg.message_type || lastMsg.type;
-    if (['image', 'photo'].includes(msgType)) return `${prefix}🖼️ Photo`;
-    if (msgType === 'video') return `${prefix}🎥 Video`;
-    if (msgType === 'audio') return `${prefix}🎵 Voice Message`;
-    if (msgType === 'document') return `${prefix}📄 Document`;
-    if (msgType === 'poll') return `${prefix}📊 Poll: ${lastMsg.metadata?.question || 'Untitled'}`;
-    
-    return `${prefix}${lastMsg.text || defaultText}`;
+    return text;
   };
 
   return (
@@ -391,8 +403,8 @@ const Sidebar = ({
                           <TypingIndicatorDots />
                         </div>
                       ) : (
-                        <p className={`text-xs truncate font-medium max-w-[85%] ${isUnreadGroup ? 'text-text-main font-bold' : 'text-text-soft'}`}>
-                          {formatLastMessage(group.lastMessage, `${group.members.length} participants`)}
+                        <p className={`text-xs truncate font-medium max-w-[85%] flex items-center ${isUnreadGroup ? 'text-text-main font-bold' : 'text-text-soft'}`}>
+                          {renderLastMessage(group.lastMessage, `${group.members.length} participants`)}
                         </p>
                       )}
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -474,8 +486,8 @@ const Sidebar = ({
                           <TypingIndicatorDots />
                         </div>
                       ) : (
-                        <p className={`text-xs truncate font-medium max-w-[85%] ${isUnread ? 'text-text-main font-bold' : 'text-text-soft'}`}>
-                          {formatLastMessage(p.lastMessage, 'No messages yet')}
+                        <p className={`text-xs truncate font-medium max-w-[85%] flex items-center ${isUnread ? 'text-text-main font-bold' : 'text-text-soft'}`}>
+                          {renderLastMessage(p.lastMessage, 'No messages yet')}
                         </p>
                       )}
                       <div className="flex items-center gap-1.5 shrink-0">
