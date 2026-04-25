@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Search, Image, Camera, Mic, BarChart3, Paperclip, Phone, PhoneOff,
-  CheckCircle2, XCircle, LogOut, MessageSquare, ShieldCheck
+  CheckCircle2, XCircle, LogOut, MessageSquare, ShieldCheck, Calendar
 } from 'lucide-react';
 
 // Hooks
@@ -35,7 +35,8 @@ import {
   clearChatMessages, deleteChatRoom, deleteGroup,
   updateDisappearingTime as updateDisappearingTime_api,
   toggleFavourite, updateChatLabel,
-  sendFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriendUser
+  sendFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriendUser,
+  createSchedule
 } from '../../services/api';
 
 const ChatBox = () => {
@@ -76,6 +77,7 @@ const ChatBox = () => {
   const [newDMSearch, setNewDMSearch] = useState('');
   const [newDMMode, setNewDMMode] = useState('message'); // 'message' | 'call'
   const [showPollModal, setShowPollModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
   const [allowMultiple, setAllowMultiple] = useState(false);
@@ -731,12 +733,42 @@ const ChatBox = () => {
     }
   };
 
+  const handleCreateEvent = async (eventData) => {
+    try {
+      const res = await createSchedule({
+        ...eventData,
+        created_by: user.username
+      });
+      
+      if (res) {
+        // Send a calendar_event message
+        sendMessage(
+          `Event: ${eventData.title}`, 
+          'calendar_event', 
+          {
+            title: eventData.title,
+            description: eventData.description,
+            start_time: eventData.start_time,
+            end_time: eventData.end_time,
+            room_id: eventData.room_id
+          }
+        );
+        setShowEventModal(false);
+        showToast("Event created and shared!");
+      }
+    } catch (err) {
+      console.error("Failed to create event:", err);
+      showToast("Failed to create event", "error");
+    }
+  };
+
   // ─── Attach Menu Items ───────────────────────────────────────
   const attachMenuItems = [
     { label: 'Document', icon: Paperclip, color: 'text-blue-500', onClick: () => fileInputRef.current?.click() },
     { label: 'Camera', icon: Camera, color: 'text-pink-500', onClick: openCamera },
     { label: 'Gallery', icon: Image, color: 'text-purple-500', onClick: () => imageInputRef.current?.click() },
     { label: 'Audio', icon: Mic, color: 'text-orange-500', onClick: startAudioRecording },
+    { label: 'Event', icon: Calendar, color: 'text-emerald-500', onClick: () => setShowEventModal(true) },
     { label: 'Poll', icon: BarChart3, color: 'text-violet-500', onClick: () => setShowPollModal(true) }
   ];
 
@@ -1030,6 +1062,9 @@ const ChatBox = () => {
         scrollToMessage={scrollToMessage} showToast={showToast}
         initiateCall={initiateCall}
         onCreatePoll={handleCreatePoll}
+        showEventModal={showEventModal}
+        setShowEventModal={setShowEventModal}
+        handleCreateEvent={handleCreateEvent}
       />
 
       <CallUIManager 

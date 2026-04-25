@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XCircle, CheckCircle2 } from 'lucide-react';
+import { getRoomId } from '../../../utils/chatUtils';
 
 // Modals
 import NewDMModal from './NewDMModal';
@@ -14,6 +15,7 @@ import MessageInfoModal from './MessageInfoModal';
 import ContactInfoModal from './ContactInfoModal';
 import GroupSettingsModal from '../../Groups/GroupSettingsModal';
 import PhotoViewer from '../window/PhotoViewer';
+import EventModal from '../window/EventModal';
 
 // Context Menus
 import MessageContextMenu from '../window/MessageContextMenu';
@@ -50,7 +52,8 @@ const ModalsManager = ({
   // Handlers
   startDM, updateDisappearingTime, handleForward, initiateCall,
   updateChatLabel, refreshPartners, getUser,
-  handleMessageAction, handleChatAction, scrollToMessage, showToast, onCreatePoll
+  handleMessageAction, handleChatAction, scrollToMessage, showToast, onCreatePoll,
+  showEventModal, setShowEventModal, handleCreateEvent
 }) => {
   return (
     <>
@@ -272,6 +275,18 @@ const ModalsManager = ({
           />
         )}
       </AnimatePresence>
+
+      <EventModal 
+        show={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        onCreate={handleCreateEvent}
+        roomId={getRoomId(selectedChat, user.username)}
+        currentChatName={
+          typeof selectedChat === 'string' 
+            ? (getUser(selectedChat)?.fullName || selectedChat) 
+            : (selectedChat.name || selectedChat.username)
+        }
+      />
     </>
   );
 };

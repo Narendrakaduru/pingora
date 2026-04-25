@@ -239,7 +239,7 @@ const UsersView = ({ onMessageUser }) => {
                                             >
                                                 {/* Avatar Column */}
                                                 <div className="relative shrink-0">
-                                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-primary font-black text-xl shadow-inner duration-500 overflow-hidden">
+                                                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-primary font-black text-xl shadow-inner duration-500 overflow-hidden">
                                                         {u.profilePhoto ? (
                                                             <img 
                                                                 src={`${USER_API}${u.profilePhoto}`} 
@@ -278,7 +278,7 @@ const UsersView = ({ onMessageUser }) => {
                                                         <div className="flex gap-1.5 md:gap-2">
                                                             <button 
                                                                 onClick={() => onMessageUser(u.username)}
-                                                                className="px-3 md:px-6 py-2.5 md:py-3 bg-primary text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary-dark transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.95]"
+                                                                className="px-3 md:px-6 py-2.5 md:py-3 btn-premium text-[9px] md:text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.95]"
                                                             >
                                                                 <MessageSquare size={14} fill="currentColor" />
                                                                 <span className="hidden sm:inline">Message</span>
@@ -286,7 +286,7 @@ const UsersView = ({ onMessageUser }) => {
                                                             <button 
                                                                 onClick={() => handleUnfriend(friendship.id, u.username)}
                                                                 disabled={loadingStates[u.username] === 'unfriending'}
-                                                                className="px-3 md:px-6 py-2.5 md:py-3 bg-red-50 text-red-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 flex items-center shadow-lg shadow-red-500/10"
+                                                                className="px-3 md:px-6 py-2.5 md:py-3 bg-surface-high text-text-soft hover:text-red-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50 flex items-center border border-border/50"
                                                             >
                                                                 {loadingStates[u.username] === 'unfriending' ? '...' : (
                                                                     <>
@@ -306,14 +306,14 @@ const UsersView = ({ onMessageUser }) => {
                                                                 <button 
                                                                     onClick={() => handleAcceptRequest(friendship.id, u.username)}
                                                                     disabled={loadingStates[u.username] === 'accepting'}
-                                                                    className="px-3 py-2 bg-green-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-600 transition-all disabled:opacity-60"
+                                                                    className="px-3 py-2 btn-premium text-[9px] md:text-[10px] uppercase tracking-widest !rounded-xl !py-2.5 shadow-md shadow-primary/10"
                                                                 >
                                                                     {loadingStates[u.username] === 'accepting' ? '...' : 'Accept'}
                                                                 </button>
                                                                 <button 
                                                                     onClick={() => handleRejectRequest(friendship.id, u.username)}
                                                                     disabled={loadingStates[u.username] === 'rejecting'}
-                                                                    className="px-3 py-2 bg-red-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-all disabled:opacity-60"
+                                                                    className="px-3 py-2 bg-surface-high text-text-soft hover:text-red-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 transition-all border border-border/50"
                                                                 >
                                                                     {loadingStates[u.username] === 'rejecting' ? '...' : 'Reject'}
                                                                 </button>

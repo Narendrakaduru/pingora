@@ -53,8 +53,8 @@ const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
         
         {/* Pulse Visualizer */}
         <div className="relative">
-           <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping opacity-20" />
-           <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-surface-low border border-primary/10 flex items-center justify-center text-primary relative z-10 duration-500 overflow-hidden">
+           <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" />
+           <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-surface-low border border-primary/10 flex items-center justify-center text-primary relative z-10 duration-500 overflow-hidden">
              {getUser && getUser(call.from)?.profilePhoto ? (
                 <img src={`/api/auth${getUser(call.from).profilePhoto}`} alt="" className="w-full h-full object-cover" />
              ) : (

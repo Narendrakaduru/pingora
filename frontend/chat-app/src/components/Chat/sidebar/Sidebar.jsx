@@ -154,7 +154,7 @@ const Sidebar = ({
       <div className="hidden md:flex w-20 bg-white border-r border-border flex-col items-center py-6 gap-8">
         <button 
           onClick={() => setActiveView('profile')}
-          className={`w-12 h-12 rounded-2xl overflow-hidden border-2 transition-all active:scale-95 shadow-sm ${activeView === 'profile' ? 'border-primary shadow-lg shadow-primary/30 rotate-3' : 'border-primary/10 hover:border-primary/30'}`}
+          className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all active:scale-95 shadow-sm ${activeView === 'profile' ? 'border-primary shadow-lg shadow-primary/30 rotate-3' : 'border-primary/10 hover:border-primary/30'}`}
         >
           {user.profilePhoto ? (
             <img src={`${USER_API}${user.profilePhoto}`} alt="Profile" className="w-full h-full object-cover" />
@@ -260,13 +260,13 @@ const Sidebar = ({
                   onClick={() => setActiveFilter(chip.id)}
                   className={`px-3.5 py-1.5 rounded-full text-sm font-bold transition-all shrink-0 border flex items-center gap-2
                   ${activeFilter === chip.id 
-                    ? 'bg-green-100 text-green-700 border-green-200 shadow-sm shadow-green-100' 
+                    ? 'bg-primary/10 text-primary border-primary/20 shadow-sm shadow-primary/5' 
                     : 'bg-surface-lowest text-text-soft border-border/10 hover:bg-surface-high hover:border-border/30'}`}
                 >
                   {chip.label}
                   {chip.count > 0 && (
                     <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black border
-                      ${activeFilter === chip.id ? 'bg-green-600 text-white border-green-700/20' : 'bg-surface-high text-text-soft border-border/10'}`}>
+                      ${activeFilter === chip.id ? 'bg-primary text-white border-primary/20' : 'bg-surface-high text-text-soft border-border/10'}`}>
                       {chip.count}
                     </span>
                   )}
@@ -277,7 +277,7 @@ const Sidebar = ({
             <div className="relative shrink-0">
               <button 
                 onClick={() => setShowListDropdown(!showListDropdown)}
-                className={`p-1.5 rounded-full border transition-all ${showListDropdown || activeFilter.startsWith('list:') ? 'bg-green-100 text-green-700 border-green-200' : 'bg-surface-lowest text-text-soft border-border/10 hover:bg-surface-high'}`}
+                className={`p-1.5 rounded-full border transition-all ${showListDropdown || activeFilter.startsWith('list:') ? 'bg-primary/10 text-primary border-primary/20' : 'bg-surface-lowest text-text-soft border-border/10 hover:bg-surface-high'}`}
               >
                 <ChevronDown size={16} className={`transition-transform ${showListDropdown ? 'rotate-180' : ''}`} />
               </button>
@@ -290,7 +290,7 @@ const Sidebar = ({
                         key={label}
                         onClick={() => { setActiveFilter(`list:${label}`); setShowListDropdown(false); }}
                         className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2
-                          ${activeFilter === `list:${label}` ? 'bg-green-50 text-green-700' : 'text-text-main hover:bg-surface-low'}`}
+                          ${activeFilter === `list:${label}` ? 'bg-primary/5 text-primary' : 'text-text-main hover:bg-surface-low'}`}
                       >
                         {label}
                       </button>
@@ -352,7 +352,7 @@ const Sidebar = ({
                   onContextMenu={(e) => handleContextMenu(e, group, 'group')}
                   className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer group border border-transparent ${isSelectedGroup ? 'bg-surface-lowest shadow-premium border-border/5' : 'hover:bg-surface-high/20 hover:border-border/5'}`}
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold relative transition-all duration-300 group-hover:bg-primary group-hover:text-white">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold relative transition-all duration-300 group-hover:bg-primary group-hover:text-white">
                     <Users size={26} />
                     {isUnreadGroup && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary border-4 border-surface-low rounded-full animate-pulse shadow-sm" />
@@ -427,11 +427,11 @@ const Sidebar = ({
                         (photoPrivacy === 'selected' && partnerUser?.privacy?.profilePhotoSelected?.includes(user.username.toLowerCase()));
                       
                       return partner?.profilePhoto && canSeePhoto ? (
-                        <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm border border-border/10">
+                        <div className="w-full h-full rounded-full overflow-hidden shadow-sm border border-border/10">
                           <img src={`${USER_API}${partner.profilePhoto}`} alt="" className="w-full h-full object-cover transition-transform duration-500" />
                         </div>
                       ) : (
-                        <div className={`w-full h-full rounded-2xl flex items-center justify-center font-black text-xl transition-all duration-300 ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20 rotate-3' : 'bg-surface-high text-primary/70 group-hover:bg-white group-hover:rotate-6'}`}>
+                        <div className={`w-full h-full rounded-full flex items-center justify-center font-black text-xl transition-all duration-300 ${isSelected ? 'bg-primary text-white shadow-lg shadow-primary/20 rotate-3' : 'bg-surface-high text-primary/70 group-hover:bg-white group-hover:rotate-6'}`}>
                           {p.username[0].toUpperCase()}
                         </div>
                       );

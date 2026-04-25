@@ -98,7 +98,7 @@ const PollVotesModal = ({
         <div className="p-6 bg-surface-low border-t border-border">
           <button 
             onClick={onClose} 
-            className="w-full py-4 bg-text-main text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black active:scale-95 transition-all"
+            className="w-full btn-premium py-4 text-sm shadow-xl"
           >
             Close Details
           </button>

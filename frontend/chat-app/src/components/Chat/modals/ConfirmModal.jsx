@@ -48,7 +48,11 @@ const ConfirmModal = ({
           </button>
           <button 
             onClick={() => { onConfirm(); onClose(); }}
-            className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-soft active:scale-95 transition-all text-white ${type === 'danger' ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary-dark'}`}
+            className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all text-white ${
+              type === 'danger' 
+                ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/20' 
+                : 'bg-gradient-to-br from-primary to-primary-hover shadow-primary/20'
+            }`}
           >
             {confirmText}
           </button>

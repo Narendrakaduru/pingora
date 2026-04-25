@@ -110,11 +110,11 @@ const ProfileView = ({ onBack }) => {
             <div className="flex flex-col md:flex-row items-center gap-6 md:gap-14">
               {/* Profile Photo: Refined Framing */}
               <div className="relative group">
-                <div className="w-28 h-28 md:w-52 md:h-52 rounded-2xl bg-surface-low p-1.5 overflow-hidden shadow-soft transition-transform duration-700">
+                <div className="w-28 h-28 md:w-52 md:h-52 rounded-full bg-surface-low p-1.5 overflow-hidden shadow-soft transition-transform duration-700">
                   {photoPreview ? (
-                    <img src={photoPreview} alt="Profile" className="w-full h-full object-cover rounded-lg" />
+                    <img src={photoPreview} alt="Profile" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <div className="w-full h-full rounded-lg bg-surface-high flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-surface-high flex items-center justify-center">
                       <User size={80} className="text-primary/10" />
                     </div>
                   )}

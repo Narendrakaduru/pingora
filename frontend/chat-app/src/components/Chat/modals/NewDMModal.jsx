@@ -68,10 +68,12 @@ const NewDMModal = ({
                   onClick={() => onStartDM(u.username)}
                   className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-surface-low transition-all group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all font-bold text-lg shadow-sm">
-                    {u.profilePhoto ? (
-                       <img src={`/api/auth${u.profilePhoto}`} alt="" className="w-full h-full object-cover rounded-xl" />
-                    ) : u.username[0].toUpperCase()}
+                  <div className="relative shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center overflow-hidden border border-border/10">
+                      {u.profilePhoto ? (
+                        <img src={`/api/auth${u.profilePhoto}`} alt="" className="w-full h-full object-cover rounded-full" />
+                      ) : u.username[0].toUpperCase()}
+                    </div>
                   </div>
                   <div className="flex-1 text-left">
                     <p className="text-sm font-bold text-text-main tracking-tight group-hover:text-primary transition-colors">{u.fullName || u.username}</p>

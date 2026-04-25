@@ -96,7 +96,7 @@ const GroupMembersPanel = ({ group, currentUser, getUser, onClose, onOpenChat })
                             onOpenChat(group);
                             onClose();
                         }}
-                        className="w-full bg-primary hover:bg-primary-dark text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
+                        className="w-full btn-premium py-5 uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 shadow-lg shadow-primary/30 active:scale-[0.98]"
                     >
                         <MessageSquare size={18} />
                         Open Group Chat

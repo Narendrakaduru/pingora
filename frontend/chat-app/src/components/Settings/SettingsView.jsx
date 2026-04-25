@@ -121,7 +121,7 @@ const AdminTicketItem = ({ ticket, onUpdate }) => {
           <button 
             onClick={() => handleUpdate(ticket.status)}
             disabled={isUpdating || feedback === (ticket.adminFeedback || '')}
-            className="px-4 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed h-fit py-3"
+            className="px-4 btn-premium text-[10px] uppercase tracking-widest h-fit !py-3 shadow-md shadow-primary/10"
           >
             Save Note
           </button>
@@ -130,7 +130,7 @@ const AdminTicketItem = ({ ticket, onUpdate }) => {
           <button 
             onClick={() => handleUpdate('closed')}
             disabled={isUpdating}
-            className="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+            className="w-full py-2.5 bg-surface-high text-text-soft hover:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all border border-border/10"
           >
             Resolve & Close Ticket
           </button>
@@ -151,13 +151,13 @@ const AdminPanel = ({ loading, error, tickets, proRequests, onUpdateTicket, onHa
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-12">
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary to-primary-hover p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden">
          <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
             <ShieldCheck size={200} />
          </div>
          <div className="relative z-10">
             <h3 className="text-3xl font-black tracking-tighter mb-2">Admin Dashboard</h3>
-            <p className="text-slate-300 text-sm font-medium">Manage system-wide support tickets and user upgrade requests.</p>
+            <p className="text-white/80 text-sm font-medium">Manage system-wide support tickets and user upgrade requests.</p>
          </div>
       </div>
 
@@ -228,13 +228,13 @@ const AdminPanel = ({ loading, error, tickets, proRequests, onUpdateTicket, onHa
                     <>
                       <button 
                         onClick={() => onHandlePro(req.id, 'approved')}
-                        className="px-4 py-2 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-600 transition-all"
+                        className="px-4 py-2 btn-premium text-[10px] uppercase tracking-widest !rounded-xl !py-2 shadow-md shadow-primary/10"
                       >
                         Approve
                       </button>
                       <button 
                         onClick={() => onHandlePro(req.id, 'rejected')}
-                        className="px-4 py-2 bg-surface-low text-text-soft rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+                        className="px-4 py-2 bg-surface-high text-text-soft rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all border border-border/10"
                       >
                         Reject
                       </button>
@@ -587,7 +587,7 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div className="bg-surface-lowest p-6 rounded-2xl border border-border/50">
               <div className="flex items-center gap-6 mb-8">
-                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
                   {user.username[0].toUpperCase()}
                 </div>
                 <div>
@@ -1982,7 +1982,7 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
               <div className="flex items-center justify-end gap-6">
                 <button 
                   onClick={() => setShowThemeModal(false)}
-                  className="text-sm font-bold text-[#00a884] hover:opacity-70 transition-opacity px-2 py-1"
+                  className="text-sm font-bold text-primary hover:opacity-70 transition-opacity px-2 py-1"
                 >
                   Cancel
                 </button>
@@ -1991,7 +1991,7 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
                     updateSettings('theme', tempTheme);
                     setShowThemeModal(false);
                   }}
-                  className="px-8 py-2.5 bg-[#00a884] hover:bg-[#008f70] text-white rounded-full text-sm font-bold shadow-md shadow-[#00a884]/20 active:scale-95 transition-all"
+                  className="px-8 py-2.5 btn-premium !rounded-full text-sm !py-2.5 shadow-md shadow-primary/20"
                 >
                   OK
                 </button>

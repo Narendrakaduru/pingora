@@ -129,7 +129,7 @@ const ChatHeader = ({
         </button>
         
         <div className="relative group">
-          <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-surface-lowest flex items-center justify-center text-primary font-bold text-xl md:text-2xl transition-all duration-500 shadow-soft border-none overflow-hidden">
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-surface-lowest flex items-center justify-center text-primary font-bold text-xl md:text-2xl transition-all duration-500 shadow-soft border-none overflow-hidden">
             {isGroup ? (
               <Users size={32} />
             ) : (() => {

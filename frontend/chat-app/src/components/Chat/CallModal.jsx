@@ -587,8 +587,8 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
                      {callStatus === 'Connected' && (
                         <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" style={{ animationDuration: '3s' }} />
                      )}
-                      <div className="w-32 h-32 md:w-48 md:h-48 rounded-[48px] bg-surface-low p-2 shadow-soft border border-primary/10 overflow-hidden relative z-10">
-                        <div className="w-full h-full rounded-[40px] bg-surface-high flex items-center justify-center overflow-hidden">
+                      <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-surface-low p-2 shadow-soft border border-primary/10 overflow-hidden relative z-10">
+                        <div className="w-full h-full rounded-full bg-surface-high flex items-center justify-center overflow-hidden">
                            {getUser && getUser(participants[0])?.profilePhoto ? (
                               <img src={`/api/auth${getUser(participants[0]).profilePhoto}`} alt="" className="w-full h-full object-cover" />
                            ) : (
@@ -619,7 +619,7 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
               {call.type === 'video' && (
                 <motion.div 
                   layout onClick={() => setIsSwapped(!isSwapped)}
-                  className="absolute top-4 right-4 md:top-6 md:right-6 w-24 md:w-56 aspect-[3/4] md:aspect-video rounded-2xl overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 w-24 md:w-56 aspect-[3/4] md:aspect-video rounded-full overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
                 >
                   <video 
                     ref={isSwapped ? remoteVideoRef : localVideoRef} 
@@ -659,9 +659,9 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
                             {user?.profilePhoto ? (
                                <img src={`/api/auth${user.profilePhoto}`} alt="" className="w-full h-full object-cover opacity-50 blur-sm scale-110" />
                             ) : null}
-                            <div className="relative z-10 w-24 h-24 rounded-3xl bg-surface-lowest/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20">
+                            <div className="relative z-10 w-24 h-24 rounded-full bg-surface-lowest/50 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/20">
                                {user?.profilePhoto ? (
-                                  <img src={`/api/auth${user.profilePhoto}`} alt="" className="w-full h-full object-cover rounded-3xl" />
+                                  <img src={`/api/auth${user.profilePhoto}`} alt="" className="w-full h-full object-cover rounded-full" />
                                ) : (
                                   <span className="text-3xl font-black text-primary/40 uppercase tracking-tighter">
                                      {user?.username?.[0] || 'Y'}
@@ -699,9 +699,9 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
                                {getUser && getUser(p)?.profilePhoto && (
                                   <img src={`/api/auth${getUser(p).profilePhoto}`} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl scale-150" />
                                )}
-                               <div className={`w-24 h-24 rounded-3xl bg-surface-lowest/40 backdrop-blur-xl flex items-center justify-center text-primary/40 border border-white/10 transition-all duration-500 relative z-10 overflow-hidden shadow-2xl ${isSpeaking ? 'scale-110 ring-4 ring-primary/30' : ''}`}>
+                               <div className={`w-24 h-24 rounded-full bg-surface-lowest/40 backdrop-blur-xl flex items-center justify-center text-primary/40 border border-white/10 transition-all duration-500 relative z-10 overflow-hidden shadow-2xl ${isSpeaking ? 'scale-110 ring-4 ring-primary/30' : ''}`}>
                                   {getUser && getUser(p)?.profilePhoto ? (
-                                     <img src={`/api/auth${getUser(p).profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                     <img src={`/api/auth${getUser(p).profilePhoto}`} alt="" className="w-full h-full object-cover rounded-full" />
                                   ) : (
                                      <span className="text-2xl font-black text-primary/40 uppercase">
                                         {p?.[0] || '?'}

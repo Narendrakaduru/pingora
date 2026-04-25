@@ -40,7 +40,7 @@ const CallUIManager = ({
               </p>
               <button 
                 onClick={hangupCall}
-                className={`w-full py-4 ${callError === 'rejected' ? 'bg-slate-800 hover:bg-slate-900' : 'bg-red-500 hover:bg-red-600'} text-white rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3`}
+                className={`w-full py-4 ${callError === 'rejected' ? 'btn-premium' : 'bg-red-500 hover:bg-red-600'} text-white rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3`}
               >
                 {callError === 'rejected' ? <><X size={20} /> Close</> : <><PhoneOff size={20} /> Cancel Call</>}
               </button>
