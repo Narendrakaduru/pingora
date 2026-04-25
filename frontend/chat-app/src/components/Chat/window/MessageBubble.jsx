@@ -5,12 +5,13 @@ import {
   Calendar, FileText, Download, BarChart3, PhoneMissed, 
   PhoneOutgoing, PhoneIncoming, CornerUpLeft, Check, 
   CheckCheck, Star, Pin, Clock, Smile, Plus, Pencil, CornerUpRight,
-  Video, Circle, CheckCircle2
+  Video, Circle, CheckCircle2, Image
 } from 'lucide-react';
 import { VoicePlayer } from '../components/VoicePlayer';
 import EmojiPicker from 'emoji-picker-react';
 
 const API_BASE = '/api/chat';
+const USER_API = '/api/auth';
 
 const MessageBubble = ({
   msg,
@@ -352,6 +353,38 @@ const MessageBubble = ({
               >
                 <span className="font-bold text-primary block mb-0.5">{msg.reply_to.username === user.username ? 'You' : (getUser(msg.reply_to.username)?.fullName || msg.reply_to.username)}</span>
                 <span className="opacity-80 line-clamp-2">{msg.reply_to.text}</span>
+              </div>
+            )}
+            {msg.metadata?.reply_to_status && (
+              <div 
+                className="mb-1.5 bg-black/5 rounded-xl border-l-[4px] border-primary overflow-hidden flex"
+              >
+                <div className="flex-1 py-1.5 px-3 flex flex-col justify-center">
+                  <div className="mb-0.5 text-primary flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="font-bold text-[13px]">
+                      {isMe ? (selectedChat?.fullName || selectedChat?.username || msg.room?.replace('dm:', '').split(':').find(u => u !== user.username)) : 'You'}
+                    </span>
+                    <span className="opacity-70 text-[11px] font-semibold">&bull; Status</span>
+                  </div>
+                  {msg.metadata.status_type === 'text' ? (
+                    <span className="opacity-80 line-clamp-2 text-[12px] break-all">{msg.metadata.status_text}</span>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-text-main/70 text-[12px] font-medium mt-0.5">
+                      {msg.metadata.status_type === 'video' ? <Video size={14} className="opacity-70" /> : <Image size={14} className="opacity-70" />}
+                      <span>{msg.metadata.status_type === 'video' ? 'Video' : 'Photo'}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {msg.metadata.status_type !== 'text' && (
+                  <div className="w-[60px] aspect-square shrink-0 bg-black/10">
+                    {msg.metadata.status_type === 'video' ? (
+                      <video src={`${USER_API}${msg.metadata.status_url}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={`${USER_API}${msg.metadata.status_url}`} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                )}
               </div>
             )}
             <div className="flex flex-row flex-wrap items-end justify-end gap-x-4 gap-y-1">

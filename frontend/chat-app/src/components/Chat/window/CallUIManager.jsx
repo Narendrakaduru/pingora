@@ -25,9 +25,9 @@ const CallUIManager = ({
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
+            className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6"
           >
-            <div className="bg-white rounded-3xl p-10 text-center max-w-sm w-full shadow-2xl relative overflow-hidden">
+            <div className="bg-white rounded-3xl p-6 md:p-10 text-center max-w-sm w-full shadow-2xl relative overflow-hidden">
               {callError === 'rejected' && <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />}
               <div className={`w-24 h-24 rounded-full ${callError === 'rejected' ? 'bg-red-50' : 'bg-primary/10'} flex items-center justify-center mx-auto mb-6 ${callError === 'rejected' ? 'text-red-500' : 'text-primary animate-bounce'}`}>
                 {callError === 'rejected' ? <PhoneOff size={48} /> : <Phone size={48} />}

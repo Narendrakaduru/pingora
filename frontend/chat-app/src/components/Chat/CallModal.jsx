@@ -604,10 +604,10 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
                         <Activity size={18} />
                         <span className="text-[10px] font-bold uppercase tracking-[0.4em]">{call.type.toUpperCase()} CALL</span>
                      </div>
-                     <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-text-main">@{participants[0]}</h2>
+                     <h2 className="text-2xl md:text-5xl font-bold tracking-tighter text-text-main">@{participants[0]}</h2>
                      <div className="flex items-center justify-center">
-                        <span className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] px-6 py-2 rounded-full ${callStatus.includes('Error') || callStatus.includes('Failed') ? 'bg-red-50 text-red-600' : 'bg-primary/5 text-primary'} border border-primary/10`}>
-                          {callStatus.includes('Error') && <AlertCircle size={14} />}
+                        <span className={`flex items-center gap-2 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] px-4 md:px-6 py-2 rounded-full ${callStatus.includes('Error') || callStatus.includes('Failed') ? 'bg-red-50 text-red-600' : 'bg-primary/5 text-primary'} border border-primary/10`}>
+                          {callStatus.includes('Error') && <AlertCircle size={12} md:size={14} />}
                           {callStatus}
                         </span>
                      </div>
@@ -619,7 +619,7 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
               {call.type === 'video' && (
                 <motion.div 
                   layout onClick={() => setIsSwapped(!isSwapped)}
-                  className="absolute top-6 right-6 w-28 md:w-56 aspect-[3/4] md:aspect-video rounded-2xl overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 w-24 md:w-56 aspect-[3/4] md:aspect-video rounded-2xl overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
                 >
                   <video 
                     ref={isSwapped ? remoteVideoRef : localVideoRef} 
@@ -740,8 +740,8 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
         </div>
 
         {/* Floating Centered Toolbar */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
-           <div className="h-[60px] md:h-[50px] px-6 flex items-center justify-center gap-6 md:gap-10 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl transition-all duration-300">
+        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-40 w-[90%] md:w-auto">
+           <div className="h-[64px] md:h-[50px] px-4 md:px-6 flex items-center justify-center gap-4 md:gap-10 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-2xl shadow-2xl transition-all duration-300">
               <button onClick={() => setShowAddParticipant(true)} className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-white hover:text-primary transition-all duration-300">
                 <UserPlus size={20} />
               </button>
@@ -765,7 +765,7 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
                  </>
               )}
               
-              <div className="pl-2 border-l border-white/10 hidden sm:block">
+              <div className="pl-2 border-l border-white/10 hidden md:block">
                  <p className="text-[10px] font-mono font-bold tracking-tight text-white/90">{formatDuration(duration)}</p>
               </div>
            </div>

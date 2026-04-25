@@ -80,12 +80,12 @@ const GroupsView = ({ onMessageGroup, getUser }) => {
     );
 
     return (
-        <div className="flex-1 p-6 md:p-12 bg-surface overflow-y-auto w-full h-full text-text-main relative">
+        <div className="flex-1 p-4 md:p-12 bg-surface overflow-y-auto w-full h-full text-text-main relative custom-scrollbar">
             <motion.div 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="max-w-7xl mx-auto space-y-12 pb-24"
+                className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24"
             >
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -94,12 +94,12 @@ const GroupsView = ({ onMessageGroup, getUser }) => {
                             <UsersIcon size={20} />
                             <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Active Groups</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-text-main">Groups</h2>
-                        <p className="text-text-soft text-lg font-medium tracking-tight">Join communities or chat with your best friends.</p>
+                        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-text-main leading-tight">Groups</h2>
+                        <p className="text-text-soft text-base md:text-lg font-medium tracking-tight">Join communities or chat with your best friends.</p>
                     </div>
                     <button 
                         onClick={openCreateModal}
-                        className="btn-premium px-10 h-16 text-sm tracking-widest uppercase flex items-center justify-center gap-3"
+                        className="btn-premium w-full md:w-auto px-10 h-14 md:h-16 text-sm tracking-widest uppercase flex items-center justify-center gap-3"
                     >
                         <Plus size={20} />
                         Create Group
@@ -107,13 +107,13 @@ const GroupsView = ({ onMessageGroup, getUser }) => {
                 </div>
 
                 {/* Main Filter & Content Area */}
-                <section className="space-y-10">
+                <section className="space-y-8 md:space-y-10">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="relative w-full md:max-w-md">
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text-light" size={20} />
                             <input 
                                 type="text" 
-                                placeholder="Search for a group..." 
+                                placeholder="Search groups..." 
                                 className="organic-input !pl-14 !h-14"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
@@ -167,7 +167,7 @@ const GroupsView = ({ onMessageGroup, getUser }) => {
                                             }}
                                             whileHover={{ y: -5, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className="group relative bg-surface-lowest rounded-xl p-8 shadow-soft hover:shadow-xl transition-all duration-500 flex flex-col justify-between h-64 overflow-hidden cursor-pointer z-10"
+                                            className="group relative bg-surface-lowest rounded-xl p-5 md:p-8 shadow-soft hover:shadow-xl transition-all duration-500 flex flex-col justify-between h-56 md:h-64 overflow-hidden cursor-pointer z-10"
                                         >
                                             {/* Decorative Pulse Accents */}
                                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 group-hover:bg-primary/10 transition-all duration-500 blur-2xl pointer-events-none" />

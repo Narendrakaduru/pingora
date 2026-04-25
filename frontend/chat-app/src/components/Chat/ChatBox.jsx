@@ -63,7 +63,7 @@ const ChatBox = () => {
     lastSeenMap, setLastSeenMap,
     typingUsers, setTypingUsers,
     allUsers,
-    friendships, fetchAllFriendships,
+    friendships, fetchAllFriendships, friendshipsLoaded,
     roomSettings, setRoomSettings,
     refreshPartners, fetchRoomSettings, getUser
   } = useChatState(user);
@@ -742,7 +742,7 @@ const ChatBox = () => {
 
   // ─── Render ──────────────────────────────────────────────────
   return (
-    <div className="flex bg-surface-sidebar h-screen overflow-hidden font-sans text-text-main selection:bg-primary/20">
+    <div className="flex bg-surface-sidebar h-[100dvh] overflow-hidden font-sans text-text-main selection:bg-primary/20">
       <Sidebar 
         activeView={activeView} setActiveView={setActiveView}
         selectedChat={selectedChat} setSelectedChat={setSelectedChat}
@@ -793,7 +793,7 @@ const ChatBox = () => {
               />
 
               <AnimatePresence>
-                {!isFriend && selectedChat !== 'general-chat' && typeof selectedChat === 'string' && (
+                {friendshipsLoaded && !isFriend && selectedChat !== 'general-chat' && typeof selectedChat === 'string' && (
                   <motion.div 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
@@ -989,6 +989,7 @@ const ChatBox = () => {
             handleEventCreated={handleEventCreated} allUsers={allUsers}
             getUser={getUser}
             user={user}
+            sendMessage={sendMessage}
           />
         )}
       </div>

@@ -197,7 +197,7 @@ const MessageInput = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                    className="absolute bottom-14 left-0 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] py-2 min-w-[180px] z-50"
+                    className="fixed md:absolute bottom-0 left-0 right-0 md:bottom-14 md:left-0 md:right-auto bg-white rounded-t-3xl md:rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] py-4 md:py-2 min-w-full md:min-w-[180px] z-50"
                   >
                     {attachMenuItems.map((item) => (
                       <button
@@ -257,7 +257,7 @@ const MessageInput = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                    className="absolute bottom-14 right-0 z-50 shadow-2xl rounded-2xl overflow-hidden"
+                    className="fixed md:absolute bottom-0 left-0 right-0 md:bottom-14 md:right-0 md:left-auto z-50 shadow-2xl rounded-t-3xl md:rounded-2xl overflow-hidden"
                   >
                     <EmojiPicker
                       onEmojiClick={(emojiData) => {

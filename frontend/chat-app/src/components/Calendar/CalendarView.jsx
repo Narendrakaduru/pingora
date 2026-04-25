@@ -35,6 +35,7 @@ const CalendarView = ({ onEventCreated }) => {
 
     const [editingScheduleId, setEditingScheduleId] = useState(null);
     const [showToast, setShowToast] = useState(false);
+    const [activeMobileView, setActiveMobileView] = useState('calendar'); // 'calendar' or 'agenda'
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -309,13 +310,15 @@ const CalendarView = ({ onEventCreated }) => {
                     <span className={`text-[11px] font-bold ${isSelected ? 'text-primary' : isToday ? 'text-primary' : 'text-text-soft opacity-60'}`}>{d}</span>
                     <div className="mt-1 space-y-1 flex-1 overflow-y-auto custom-scrollbar-mini pr-0.5">
                         {daySchedules.map(s => (
-                            <div 
-                                 key={s._id} 
-                                 className={`text-[8px] p-1 rounded border shadow-sm font-bold truncate ${s.created_by?.toLowerCase() === user.username?.toLowerCase() ? 'bg-primary text-white border-primary' : 'bg-primary/5 text-primary border-primary/20'}`}
-                                 title={s.title}
-                            >
-                                {s.title}
-                            </div>
+                            <React.Fragment key={s._id}>
+                                <div 
+                                     className={`hidden md:block text-[8px] p-1 rounded border shadow-sm font-bold truncate ${s.created_by?.toLowerCase() === user.username?.toLowerCase() ? 'bg-primary text-white border-primary' : 'bg-primary/5 text-primary border-primary/20'}`}
+                                     title={s.title}
+                                >
+                                    {s.title}
+                                </div>
+                                <div className="md:hidden w-1.5 h-1.5 rounded-full bg-primary mx-auto" />
+                            </React.Fragment>
                         ))}
                     </div>
                 </div>
@@ -385,17 +388,34 @@ const CalendarView = ({ onEventCreated }) => {
             >
                 {/* Compact Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-primary">
-                            <CalendarIcon size={14} />
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Calendar</span>
+                    <div className="flex items-center justify-between w-full md:w-auto">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-primary">
+                                <CalendarIcon size={14} />
+                                <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Calendar</span>
+                            </div>
+                            <h2 className="text-xl md:text-3xl font-bold tracking-tight text-text-main">
+                                {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][currentDate.getMonth()]} <span className="text-text-soft font-normal">{currentDate.getFullYear()}</span>
+                            </h2>
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-text-main">
-                            {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][currentDate.getMonth()]} <span className="text-text-soft font-normal">{currentDate.getFullYear()}</span>
-                        </h2>
+                        
+                        <div className="md:hidden flex bg-surface-lowest rounded-lg p-1 border border-primary/10 shadow-sm">
+                            <button 
+                                onClick={() => setActiveMobileView('calendar')}
+                                className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all ${activeMobileView === 'calendar' ? 'bg-primary text-white shadow-lg' : 'text-text-soft'}`}
+                            >
+                                Calendar
+                            </button>
+                            <button 
+                                onClick={() => setActiveMobileView('agenda')}
+                                className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all ${activeMobileView === 'agenda' ? 'bg-primary text-white shadow-lg' : 'text-text-soft'}`}
+                            >
+                                Agenda
+                            </button>
+                        </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between md:justify-end gap-3">
                         <div className="flex bg-surface-lowest rounded-lg p-1 shadow-sm border border-primary/5">
                             <button 
                                 onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
@@ -419,23 +439,24 @@ const CalendarView = ({ onEventCreated }) => {
                         
                         <button 
                             onClick={() => setShowModal(true)}
-                            className="btn-premium h-10 px-6 text-[10px] tracking-widest uppercase flex items-center gap-2"
+                            className="btn-premium h-10 px-4 md:px-6 text-[9px] md:text-[10px] tracking-widest uppercase flex items-center gap-2"
                         >
                             <Plus size={16} />
-                            New Event
+                            <span className="hidden sm:inline">New Event</span>
+                            <span className="sm:hidden">New</span>
                         </button>
                     </div>
                 </div>
                 
                 {/* Main Body - Split Layout */}
                 <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-                    <div className="lg:w-3/4 flex flex-col min-h-0">
-                        <section className="bg-surface-lowest p-4 rounded-xl shadow-soft border border-primary/5 flex flex-col flex-1 min-h-0">
+                    <div className={`${activeMobileView === 'calendar' ? 'flex' : 'hidden lg:flex'} lg:w-3/4 flex-col min-h-0`}>
+                        <section className="bg-surface-lowest p-2 md:p-4 rounded-xl shadow-soft border border-primary/5 flex flex-col flex-1 min-h-0">
                             {renderDays()}
                             {renderCells()}
                         </section>
                     </div>
-                    <div className="lg:w-1/4 flex flex-col min-h-0">
+                    <div className={`${activeMobileView === 'agenda' ? 'flex' : 'hidden lg:flex'} lg:w-1/4 flex-col min-h-0`}>
                         {renderDayTimeline()}
                     </div>
                 </div>
@@ -457,7 +478,7 @@ const CalendarView = ({ onEventCreated }) => {
                             exit={{ scale: 0.95, y: 40, opacity: 0 }}
                         >
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-primary-container opacity-60" />
-                            <div className="p-8 overflow-y-auto">
+                            <div className="p-6 md:p-8 overflow-y-auto">
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="w-12 h-12 bg-surface-low rounded-lg flex items-center justify-center text-primary shadow-sm">
                                         <CalendarIcon size={24} />

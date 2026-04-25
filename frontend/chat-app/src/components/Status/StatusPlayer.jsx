@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, Trash2, Eye, User } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Trash2, Eye, User, Send, Smile } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { USER_API, STATUS_API } from '../../utils/chatUtils';
+import { USER_API, STATUS_API, getRoomId } from '../../utils/chatUtils';
+import EmojiPicker from 'emoji-picker-react';
 
-const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete, initialIndex = 0 }) => {
+const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete, initialIndex = 0, currentUser, sendMessage }) => {
+  const [replyText, setReplyText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -110,6 +113,35 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
 
   const onVideoMetadata = (e) => {
     // If video is shorter than 30s, we might want to adjust, but let's stick to simple logic for now
+  };
+
+  const handleReplySubmit = (e) => {
+    e.preventDefault();
+    if (!replyText.trim() || !sendMessage || !currentUser) return;
+    
+    const roomId = getRoomId(group.user.username, currentUser.username);
+    sendMessage(replyText, 'text', { 
+      room_id: roomId, 
+      reply_to_status: currentStatus.id,
+      status_url: currentStatus.type !== 'text' ? currentStatus.content : null,
+      status_text: currentStatus.type === 'text' ? currentStatus.content : null,
+      status_type: currentStatus.type
+    });
+    setReplyText('');
+    setPaused(false);
+  };
+
+  const handleReaction = (emoji) => {
+    if (!sendMessage || !currentUser) return;
+    const roomId = getRoomId(group.user.username, currentUser.username);
+    sendMessage(emoji, 'text', { 
+      room_id: roomId, 
+      reply_to_status: currentStatus.id,
+      status_url: currentStatus.type !== 'text' ? currentStatus.content : null,
+      status_text: currentStatus.type === 'text' ? currentStatus.content : null,
+      status_type: currentStatus.type
+    });
+    setPaused(false);
   };
 
   if (!currentStatus) return null;
@@ -229,6 +261,68 @@ const StatusPlayer = ({ group, onClose, onNextUser, onPrevUser, isOwn, onDelete,
           </>
         )}
       </div>
+
+      {/* Reply Bar */}
+      {!isOwn && !showViewers && (
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="absolute bottom-4 left-0 right-0 z-[60] flex justify-center"
+        >
+          <div className="w-1/2 flex items-center gap-3 relative">
+            {/* Emoji Picker Popup */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-14 left-0 z-[70]">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    setReplyText(prev => prev + emojiData.emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                  theme="dark"
+                  height={350}
+                  width={300}
+                />
+              </div>
+            )}
+
+            {/* Smiley icon on the left */}
+            <button
+              type="button"
+              className="text-white/80 hover:text-white transition-colors shrink-0"
+              onClick={() => { setPaused(true); setShowEmojiPicker(prev => !prev); }}
+            >
+              <Smile size={28} />
+            </button>
+
+            {/* Input */}
+            <form
+              onSubmit={handleReplySubmit}
+              className="flex-1 flex items-center bg-black/40 backdrop-blur-xl rounded-full px-5 py-3 border border-white/20 shadow-2xl"
+            >
+              <input 
+                type="text"
+                placeholder="Type a reply..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onFocus={() => { setPaused(true); setShowEmojiPicker(false); }}
+                onBlur={() => setPaused(false)}
+                className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm font-medium"
+              />
+            </form>
+
+            {/* Send Button – same as chat */}
+            <motion.button 
+              type="button"
+              onClick={handleReplySubmit}
+              disabled={!replyText.trim()}
+              whileTap={{ scale: 0.88 }}
+              className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-white shadow-md transition-all duration-200 bg-primary hover:opacity-90 active:scale-95 disabled:opacity-40"
+            >
+              <Send size={20} strokeWidth={2.2} />
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Viewers Indicator */}
       {isOwn && !showViewers && (

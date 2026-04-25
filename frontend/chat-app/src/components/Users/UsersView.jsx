@@ -139,19 +139,19 @@ const UsersView = ({ onMessageUser }) => {
     );
 
     return (
-        <div className="flex-1 p-6 md:p-12 bg-surface overflow-y-auto w-full h-full text-text-main custom-scrollbar">
+        <div className="flex-1 p-4 md:p-12 bg-surface overflow-y-auto w-full h-full text-text-main custom-scrollbar">
             <motion.div 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="max-w-7xl mx-auto"
             >
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-12">
                     <div className="space-y-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider mb-2">
                             <ShieldCheck size={12} /> Privacy Guaranteed
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-text-main">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-text-main leading-tight">
                             Connect
                         </h2>
                         <p className="text-text-soft text-base font-medium max-w-md leading-relaxed">
@@ -235,7 +235,7 @@ const UsersView = ({ onMessageUser }) => {
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.03 }}
-                                                className="group relative bg-surface-lowest border border-border/40 rounded-2xl p-4 md:p-5 transition-all duration-300 flex items-center gap-6 overflow-hidden"
+                                                className="group relative bg-surface-lowest border border-border/40 rounded-2xl p-3 md:p-5 transition-all duration-300 flex items-center gap-3 md:gap-6 overflow-hidden"
                                             >
                                                 {/* Avatar Column */}
                                                 <div className="relative shrink-0">
@@ -258,7 +258,7 @@ const UsersView = ({ onMessageUser }) => {
                                                         {u.username.charAt(0).toUpperCase() + u.username.slice(1)}
                                                     </h3>
                                                     <div className="flex items-center gap-3 mt-1">
-                                                        <p className="text-xs font-bold text-text-light truncate tracking-tight flex items-center gap-1.5">
+                                                        <p className="text-[10px] md:text-xs font-bold text-text-light truncate tracking-tight flex items-center gap-1.5">
                                                             <Mail size={12} className="opacity-50" /> {u.email}
                                                         </p>
                                                         {isFriend && (
@@ -275,53 +275,58 @@ const UsersView = ({ onMessageUser }) => {
                                                 {/* Action Column */}
                                                 <div className="shrink-0 flex items-center gap-2">
                                                     {isFriend ? (
-                                                        <div className="flex gap-2">
+                                                        <div className="flex gap-1.5 md:gap-2">
                                                             <button 
                                                                 onClick={() => onMessageUser(u.username)}
-                                                                className="px-4 sm:px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary-dark transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.95]"
+                                                                className="px-3 md:px-6 py-2.5 md:py-3 bg-primary text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary-dark transition-all duration-300 flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.95]"
                                                             >
                                                                 <MessageSquare size={14} fill="currentColor" />
-                                                                <span className="hidden xs:inline">Message</span>
+                                                                <span className="hidden sm:inline">Message</span>
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleUnfriend(friendship.id, u.username)}
                                                                 disabled={loadingStates[u.username] === 'unfriending'}
-                                                                className="px-4 sm:px-6 py-3 bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 flex items-center shadow-lg shadow-red-500/10"
+                                                                className="px-3 md:px-6 py-2.5 md:py-3 bg-red-50 text-red-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 flex items-center shadow-lg shadow-red-500/10"
                                                             >
-                                                                {loadingStates[u.username] === 'unfriending' ? '...' : <span className="hidden xs:inline">Unfriend</span>}
-                                                                {loadingStates[u.username] !== 'unfriending' && <span className="xs:hidden">Unfriend</span>}
+                                                                {loadingStates[u.username] === 'unfriending' ? '...' : (
+                                                                    <>
+                                                                        <span className="hidden sm:inline">Unfriend</span>
+                                                                        <span className="sm:hidden">Remove</span>
+                                                                    </>
+                                                                )}
                                                             </button>
                                                         </div>
                                                     ) : isPending ? (
                                                         iSentRequest ? (
-                                                            <span className="px-4 py-2 bg-surface-high text-text-soft text-[10px] font-black uppercase tracking-widest rounded-xl">
-                                                                Request Sent
+                                                            <span className="px-3 py-2 bg-surface-high text-text-soft text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl">
+                                                                Sent
                                                             </span>
                                                         ) : (
-                                                            <div className="flex gap-2">
+                                                            <div className="flex gap-1.5 md:gap-2">
                                                                 <button 
-                                                            onClick={() => handleAcceptRequest(friendship.id, u.username)}
-                                                            disabled={loadingStates[u.username] === 'accepting'}
-                                                            className="px-4 py-2 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-600 transition-all disabled:opacity-60"
-                                                        >
-                                                            {loadingStates[u.username] === 'accepting' ? '...' : 'Accept'}
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleRejectRequest(friendship.id, u.username)}
-                                                            disabled={loadingStates[u.username] === 'rejecting'}
-                                                            className="px-4 py-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-all disabled:opacity-60"
-                                                        >
-                                                            {loadingStates[u.username] === 'rejecting' ? '...' : 'Reject'}
-                                                        </button>
-                                                    </div>
+                                                                    onClick={() => handleAcceptRequest(friendship.id, u.username)}
+                                                                    disabled={loadingStates[u.username] === 'accepting'}
+                                                                    className="px-3 py-2 bg-green-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-600 transition-all disabled:opacity-60"
+                                                                >
+                                                                    {loadingStates[u.username] === 'accepting' ? '...' : 'Accept'}
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleRejectRequest(friendship.id, u.username)}
+                                                                    disabled={loadingStates[u.username] === 'rejecting'}
+                                                                    className="px-3 py-2 bg-red-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-all disabled:opacity-60"
+                                                                >
+                                                                    {loadingStates[u.username] === 'rejecting' ? '...' : 'Reject'}
+                                                                </button>
+                                                            </div>
                                                         )
                                                     ) : (
                                                         <button 
                                                             onClick={() => handleSendRequest(u.username)}
                                                             disabled={loadingStates[u.username] === 'sending'}
-                                                            className="px-6 py-3 border-2 border-primary text-primary text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/5 transition-all duration-300 active:scale-[0.95] disabled:opacity-60 disabled:cursor-not-allowed"
+                                                            className="px-4 md:px-6 py-2.5 md:py-3 border-2 border-primary text-primary text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/5 transition-all duration-300 active:scale-[0.95] disabled:opacity-60 disabled:cursor-not-allowed"
                                                         >
-                                                            {loadingStates[u.username] === 'sending' ? 'Sending...' : 'Add Friend'}
+                                                            {loadingStates[u.username] === 'sending' ? '...' : 'Add'}
+                                                            <span className="hidden sm:inline ml-1">Friend</span>
                                                         </button>
                                                     )}
                                                 </div>

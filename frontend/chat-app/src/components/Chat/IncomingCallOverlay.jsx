@@ -45,20 +45,20 @@ const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
       animate={{ y: 0, x: "-50%", opacity: 1, scale: 1 }}
       exit={{ y: -120, x: "-50%", opacity: 0, scale: 0.9 }}
       transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-      className="fixed top-8 left-1/2 z-[250] w-full max-w-lg px-6"
+      className="fixed top-4 md:top-8 left-1/2 z-[250] w-full max-w-lg px-3 md:px-6"
     >
-      <div className="bg-surface-lowest border border-primary/5 rounded-[32px] shadow-soft p-5 flex items-center gap-6 relative overflow-hidden group">
+      <div className="bg-surface-lowest border border-primary/5 rounded-[24px] md:rounded-[32px] shadow-soft p-3 md:p-5 flex items-center gap-3 md:gap-6 relative overflow-hidden group">
         {/* Subtle Background Interaction */}
         <div className="absolute inset-0 bg-primary/2 cursor-default pointer-events-none" />
         
         {/* Pulse Visualizer */}
         <div className="relative">
            <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping opacity-20" />
-           <div className="w-16 h-16 rounded-2xl bg-surface-low border border-primary/10 flex items-center justify-center text-primary relative z-10 duration-500 overflow-hidden">
+           <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-surface-low border border-primary/10 flex items-center justify-center text-primary relative z-10 duration-500 overflow-hidden">
              {getUser && getUser(call.from)?.profilePhoto ? (
                 <img src={`/api/auth${getUser(call.from).profilePhoto}`} alt="" className="w-full h-full object-cover" />
              ) : (
-                <div className="w-full h-full bg-primary/10 flex items-center justify-center font-bold text-2xl text-primary uppercase">
+                <div className="w-full h-full bg-primary/10 flex items-center justify-center font-bold text-lg md:text-2xl text-primary uppercase">
                    {call.from[0]}
                 </div>
              )}
@@ -77,17 +77,17 @@ const IncomingCallOverlay = ({ call, onAccept, onReject, getUser }) => {
         <div className="flex items-center gap-3 relative z-10">
           <button 
             onClick={onReject}
-            className="w-14 h-14 bg-surface-high hover:bg-red-50 hover:text-red-600 text-text-soft rounded-full transition-all duration-300 flex items-center justify-center active:scale-90"
+            className="w-12 h-12 md:w-14 md:h-14 bg-surface-high hover:bg-red-50 hover:text-red-600 text-text-soft rounded-full transition-all duration-300 flex items-center justify-center active:scale-90"
             title="Terminate Link"
           >
-            <X size={28} />
+            <X size={24} />
           </button>
           <button 
             onClick={onAccept}
-            className="w-16 h-16 bg-primary hover:bg-primary-dark text-white rounded-[24px] transition-all duration-500 shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center"
+            className="w-14 h-14 md:w-16 md:h-16 bg-primary hover:bg-primary-dark text-white rounded-2xl md:rounded-[24px] transition-all duration-500 shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center"
             title="Initialize Synchronization"
           >
-            {call.type === 'video' ? <Video size={32} /> : <Phone size={32} className="fill-current" />}
+            {call.type === 'video' ? <Video size={24} /> : <Phone size={24} className="fill-current" />}
           </button>
         </div>
       </div>

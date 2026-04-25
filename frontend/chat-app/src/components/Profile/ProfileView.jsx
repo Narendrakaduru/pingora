@@ -80,7 +80,7 @@ const ProfileView = ({ onBack }) => {
   return (
     <div className="flex-1 overflow-hidden bg-surface flex flex-col h-[100dvh]">
       {/* Header */}
-      <header className="h-[96px] flex items-center justify-between px-6 md:px-12 glass-header border-none shrink-0">
+      <header className="h-20 md:h-24 flex items-center justify-between px-6 md:px-12 glass-header border-none shrink-0">
         <div className="flex items-center gap-6">
           <button 
             onClick={onBack}
@@ -101,10 +101,10 @@ const ProfileView = ({ onBack }) => {
           initial={{ opacity: 0, scale: 0.98, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-2xl mx-auto space-y-12 pb-20"
+          className="max-w-2xl mx-auto space-y-8 md:space-y-12 pb-20"
         >
           {/* Profile Details */}
-          <section className="bg-surface-lowest rounded-xl p-8 md:p-16 shadow-soft relative overflow-hidden">
+          <section className="bg-surface-lowest rounded-xl p-6 md:p-16 shadow-soft relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container opacity-40" />
             
             <div className="flex flex-col md:flex-row items-center gap-10 md:gap-14">
@@ -171,7 +171,7 @@ const ProfileView = ({ onBack }) => {
                <h4 className="text-lg font-bold tracking-tight text-text-soft uppercase tracking-[0.15em]">Profile Settings</h4>
             </div>
 
-            <div className="bg-surface-lowest rounded-xl p-8 md:p-12 shadow-soft">
+            <div className="bg-surface-lowest rounded-xl p-6 md:p-12 shadow-soft">
               <form onSubmit={handleSave} className="space-y-10">
                 <div className="space-y-3">
                   <label className="text-[11px] font-bold text-text-light uppercase tracking-[0.2em] ml-1">Full Name</label>
@@ -180,7 +180,7 @@ const ProfileView = ({ onBack }) => {
                     <input 
                       type="text" 
                       placeholder="Enter your full name"
-                      className="organic-input !pl-14 !pr-14 !h-16 text-lg w-full"
+                      className="organic-input !pl-14 !pr-14 h-14 md:!h-16 text-base md:text-lg w-full"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
@@ -201,7 +201,7 @@ const ProfileView = ({ onBack }) => {
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                              className="absolute bottom-full right-0 mb-4 z-50 shadow-2xl rounded-2xl overflow-hidden border-none"
+                              className="fixed md:absolute bottom-0 left-0 right-0 md:bottom-full md:right-0 md:left-auto mb-0 md:mb-4 z-50 shadow-2xl rounded-t-3xl md:rounded-2xl overflow-hidden border-none"
                             >
                               <EmojiPicker 
                                 onEmojiClick={(emojiData) => {
@@ -210,8 +210,9 @@ const ProfileView = ({ onBack }) => {
                                 }}
                                 autoFocusSearch={false}
                                 theme={settings.theme === 'dark' ? 'dark' : 'light'}
-                                width={320}
-                                height={400}
+                                width="100%"
+                                height={350}
+                                previewConfig={{ showPreview: false }}
                               />
                             </motion.div>
                           </>
@@ -228,7 +229,7 @@ const ProfileView = ({ onBack }) => {
                     <input 
                       type="text" 
                       placeholder="Write something about yourself..."
-                      className="organic-input !pl-14 !h-16 text-lg"
+                      className="organic-input !pl-14 h-12 md:!h-16 text-base md:text-lg"
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}
                     />
@@ -240,7 +241,7 @@ const ProfileView = ({ onBack }) => {
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full md:flex-1 h-16 btn-premium tracking-widest uppercase text-base"
+                    className="w-full md:flex-1 h-14 md:h-16 btn-premium tracking-widest uppercase text-sm md:text-base"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={24} />
@@ -254,7 +255,7 @@ const ProfileView = ({ onBack }) => {
                   <button 
                     type="button"
                     onClick={onBack}
-                    className="w-full md:w-auto px-10 h-16 text-text-soft font-bold tracking-tight hover:text-text-main transition-colors uppercase text-sm"
+                    className="w-full md:w-auto px-10 h-14 md:h-16 text-text-soft font-bold tracking-tight hover:text-text-main transition-colors uppercase text-sm"
                   >
                     Cancel
                   </button>

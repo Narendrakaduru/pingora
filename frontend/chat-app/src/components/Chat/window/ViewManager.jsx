@@ -12,12 +12,13 @@ const ViewManager = ({
   onMessageUser, onMessageGroup, 
   handleEventCreated, allUsers,
   getUser,
-  user
+  user,
+  sendMessage
 }) => {
   return (
     <div className="flex-1 overflow-hidden">
       {activeView === 'status' && (
-        <StatusView user={user} onBack={() => setActiveView('chat')} />
+        <StatusView user={user} onBack={() => setActiveView('chat')} sendMessage={sendMessage} />
       )}
       {activeView === 'profile' && (
         <ProfileView onBack={() => setActiveView('chat')} />

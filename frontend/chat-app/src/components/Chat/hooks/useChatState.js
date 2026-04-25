@@ -40,6 +40,7 @@ export const useChatState = (user) => {
   const [typingUsers, setTypingUsers] = useState({}); // { roomId: Set([usernames]) }
   const [allUsers, setAllUsers] = useState([]);
   const [friendships, setFriendships] = useState([]);
+  const [friendshipsLoaded, setFriendshipsLoaded] = useState(false);
   const [roomSettings, setRoomSettings] = useState({ disappearing_time: 'off' });
 
   const fetchAllFriendships = useCallback(async () => {
@@ -51,6 +52,8 @@ export const useChatState = (user) => {
       }
     } catch (err) {
       console.error("Error fetching friendships:", err);
+    } finally {
+      setFriendshipsLoaded(true);
     }
   }, [user]);
 
@@ -137,6 +140,7 @@ export const useChatState = (user) => {
     typingUsers, setTypingUsers,
     allUsers, setAllUsers,
     friendships, setFriendships,
+    friendshipsLoaded,
     roomSettings, setRoomSettings,
     // Actions
     refreshPartners,

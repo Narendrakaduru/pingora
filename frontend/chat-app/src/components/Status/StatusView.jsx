@@ -9,7 +9,7 @@ import StatusPlayer from './StatusPlayer';
 import EmojiPicker from 'emoji-picker-react';
 import { useSettings } from '../../context/SettingsContext';
 
-const StatusView = ({ user, onBack }) => {
+const StatusView = ({ user, onBack, sendMessage }) => {
   const { settings } = useSettings();
   const [groupedStatuses, setGroupedStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -346,6 +346,8 @@ const StatusView = ({ user, onBack }) => {
           <StatusPlayer 
             group={activeStatusUser} 
             initialIndex={getInitialIndex(activeStatusUser)}
+            currentUser={user}
+            sendMessage={sendMessage}
             onClose={() => {
               setActiveStatusUser(null);
               fetchStatuses(); // Refresh statuses to update 'viewed' states

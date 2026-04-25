@@ -141,7 +141,7 @@ const Sidebar = ({
 
   return (
     <>
-      {/* 1. Slim Nav Sidebar - HIDDEN ON MOBILE */}
+      {/* 1a. Slim Nav Sidebar - DESKTOP ONLY */}
       <div className="hidden md:flex w-20 bg-white border-r border-border flex-col items-center py-6 gap-8">
         <button 
           onClick={() => setActiveView('profile')}
@@ -169,8 +169,34 @@ const Sidebar = ({
             </button>
           ))}
         </nav>
-
       </div>
+
+      {/* 1b. Bottom Nav Bar - MOBILE ONLY */}
+      {!showMobileChat && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] bg-white border-t border-border flex items-center justify-around px-2 py-2 shadow-[0_-2px_20px_rgba(0,0,0,0.08)]">
+          <button
+            onClick={() => setActiveView('profile')}
+            className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${activeView === 'profile' ? 'text-primary' : 'text-text-light'}`}
+          >
+            {user.profilePhoto ? (
+              <img src={`${USER_API}${user.profilePhoto}`} alt="Profile" className="w-7 h-7 rounded-full object-cover border-2 border-primary/20" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                {user.username[0].toUpperCase()}
+              </div>
+            )}
+          </button>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={`flex flex-col items-center p-2 rounded-xl transition-all ${activeView === item.id ? 'text-primary' : 'text-text-light'}`}
+            >
+              <item.icon size={22} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 2. Chat Sidebar (List) */}
       <div className={`${(activeView === 'chat' || activeView === 'archive') ? (showMobileChat ? 'hidden md:flex' : 'flex') : 'hidden'} flex-col w-full md:w-[380px] lg:w-[420px] bg-surface-low border-r border-border relative z-20`}>
@@ -266,7 +292,7 @@ const Sidebar = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-4">
+        <div className="flex-1 overflow-y-auto px-3 pb-20 md:pb-4">
           <div className="space-y-1">
             <div 
               onClick={() => setSelectedChat('general-chat')}

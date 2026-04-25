@@ -281,7 +281,10 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
 
   const { user, logout, toggleProStatus } = useAuth();
   const { settings, updateSettings, blockContact, unblockContact, togglePrivacyUser } = useSettings();
-  const [activeCategory, setActiveCategory] = useState(() => localStorage.getItem(`pingora_settings_cat_${user?.username}`) || 'account');
+  const [activeCategory, setActiveCategory] = useState(() => {
+    if (window.innerWidth < 768) return null;
+    return localStorage.getItem(`pingora_settings_cat_${user?.username}`) || 'account';
+  });
   const [devices, setDevices] = useState({ video: [], audio: [] });
   const [selectedDevices, setSelectedDevices] = useState({ video: '', audio: '' });
   
@@ -1838,17 +1841,20 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
     <div className="flex-1 w-full h-full bg-surface overflow-hidden flex flex-col">
       <div className="flex-1 flex overflow-hidden">
         {/* Settings Sidebar */}
-        <aside className="w-full md:w-[380px] lg:w-[420px] bg-surface-low border-r border-border/10 flex flex-col shrink-0 relative z-20">
-          <div className="p-8 pb-4">
+        <aside className={`${activeCategory ? 'hidden md:flex' : 'flex'} w-full md:w-[380px] lg:w-[420px] bg-surface-low border-r border-border/10 flex flex-col shrink-0 relative z-20`}>
+          <div className="p-6 md:p-8 pb-4">
              <div className="flex items-center gap-4 mb-2">
                 <button 
-                  onClick={onBack}
-                  className="p-3 bg-surface-lowest rounded-2xl md:hidden text-text-main"
+                  onClick={() => {
+                     if (activeCategory) setActiveCategory(null);
+                     else onBack();
+                   }}
+                  className="p-3 bg-surface-lowest rounded-2xl md:hidden text-text-main hover:bg-surface-high transition-all"
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <img src="/pingora_logo.png" alt="Logo" className="w-10 h-10 object-contain" />
-                <h2 className="text-3xl font-black tracking-tighter text-text-main">Settings</h2>
+                <img src="/pingora_logo.png" alt="Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-text-main">Settings</h2>
 
              </div>
              <p className="text-[10px] font-bold text-text-light uppercase tracking-widest ml-1">Configure your workspace</p>
@@ -1905,18 +1911,24 @@ const SettingsView = ({ onBack, allUsers = [] }) => {
         </aside>
 
         {/* Settings Detail Content */}
-        <main className="hidden md:flex flex-1 flex-col bg-surface overflow-hidden relative">
+        <main className={`${activeCategory ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-surface overflow-hidden relative pb-20 md:pb-0`}>
            <div className="absolute top-0 right-0 p-32 opacity-[0.03] pointer-events-none">
               {React.createElement(categories.find(c => c.id === activeCategory)?.icon || MessageSquare, { size: 400 })}
            </div>
 
-           <header className="h-24 flex items-center px-12 glass-header border-b border-border/10 z-20 transition-all">
-              <h3 className="text-xl font-bold tracking-tight text-text-main">
+           <header className="h-20 md:h-24 flex items-center px-6 md:px-12 glass-header border-b border-border/10 z-20 transition-all gap-4">
+              <button 
+                onClick={() => { setActiveCategory(null); setSubView(null); }}
+                className="p-2 md:hidden hover:bg-surface-low rounded-xl transition-colors text-primary"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <h3 className="text-lg md:text-xl font-bold tracking-tight text-text-main">
                 {categories.find(c => c.id === activeCategory)?.title}
               </h3>
            </header>
 
-           <div className="flex-1 overflow-y-auto p-12 relative z-10 custom-scrollbar max-w-4xl">
+           <div className="flex-1 overflow-y-auto p-6 md:p-12 relative z-10 custom-scrollbar w-full max-w-4xl mx-auto">
               {renderContent()}
            </div>
         </main>
