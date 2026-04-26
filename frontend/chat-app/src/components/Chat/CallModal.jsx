@@ -619,7 +619,7 @@ const CallModal = ({ call, onHangup, ws, dmPartners = [], onlineUsers = new Set(
               {call.type === 'video' && (
                 <motion.div 
                   layout onClick={() => setIsSwapped(!isSwapped)}
-                  className="absolute top-4 right-4 md:top-6 md:right-6 w-24 md:w-56 aspect-[3/4] md:aspect-video rounded-full overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 w-24 md:w-56 aspect-[3/4] md:aspect-video rounded-2xl md:rounded-3xl overflow-hidden border border-white/20 shadow-2xl z-30 cursor-pointer transition-all duration-500 hover:shadow-primary/20 group bg-surface-low"
                 >
                   <video 
                     ref={isSwapped ? remoteVideoRef : localVideoRef} 

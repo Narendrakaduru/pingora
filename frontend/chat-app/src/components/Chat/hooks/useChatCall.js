@@ -5,12 +5,15 @@ export const useChatCall = (user, wsRef, selectedChat) => {
   const [activeCall, setActiveCall] = useState(null); // { target, type, isCaller, signal, call_id }
   const activeCallRef = useRef(null);
   const activeCallIdRef = useRef(null);
-  const [incomingCall, setIncomingCall] = useState(null); // { from, type, signal, call_id }
+  const [incomingCall, setIncomingCall] = useState(null); // { from, type, signal, call_id, is_group_call, group_id }
   const incomingCallRef = useRef(null);
   const incomingCallTimeoutRef = useRef(null);
   const isHangingUpRef = useRef(false);
   const [isCalling, setIsCalling] = useState(false);
   const [callError, setCallError] = useState(null); // 'rejected' | 'offline' | null
+  
+  const callTargetRef = useRef(null);
+  const isGroupCallRef = useRef(false);
 
   useEffect(() => {
     activeCallRef.current = activeCall;
@@ -20,9 +23,9 @@ export const useChatCall = (user, wsRef, selectedChat) => {
     incomingCallRef.current = incomingCall;
   }, [incomingCall]);
 
-  const persistCallLog = useCallback((target, callType, status, duration = null, isCaller = true) => {
+  const persistCallLog = useCallback((target, callType, status, duration = null, isCaller = true, isGroup = false) => {
     if (!wsRef.current || wsRef.current.readyState !== 1) return;
-    const rId = getRoomId(target, user.username);
+    const rId = isGroup ? target : getRoomId(target, user.username);
     const logMsg = {
       type: 'call_log',
       room: rId,
@@ -47,6 +50,9 @@ export const useChatCall = (user, wsRef, selectedChat) => {
     
     if (!targetName || targetName === 'general-chat') return;
     
+    callTargetRef.current = targetName;
+    isGroupCallRef.current = isGroup;
+
     const cId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
     activeCallIdRef.current = cId;
     setCallError(null);
@@ -65,6 +71,9 @@ export const useChatCall = (user, wsRef, selectedChat) => {
     if (!incomingCallRef.current) return;
     const call = incomingCallRef.current;
 
+    const isGroup = call.is_group_call || false;
+    const target = call.group_id || call.from;
+
     wsRef.current.send(JSON.stringify({
       type: 'call_response',
       target: call.from,
@@ -77,7 +86,7 @@ export const useChatCall = (user, wsRef, selectedChat) => {
       call_id: call.call_id
     }));
     
-    persistCallLog(call.from, call.type || 'voice', status, null, false);
+    persistCallLog(target, call.type || 'voice', status, null, false, isGroup);
 
     if (incomingCallTimeoutRef.current) {
       clearTimeout(incomingCallTimeoutRef.current);
@@ -104,6 +113,12 @@ export const useChatCall = (user, wsRef, selectedChat) => {
       target: user.username,
       call_id: incomingCall.call_id
     }));
+
+    const isGroup = incomingCall.is_group_call || false;
+    const target = incomingCall.group_id || incomingCall.from;
+    callTargetRef.current = target;
+    isGroupCallRef.current = isGroup;
+
     activeCallIdRef.current = incomingCall.call_id;
     setActiveCall({ target: incomingCall.from, type: incomingCall.type, isCaller: false, call_id: incomingCall.call_id });
     setIncomingCall(null);
@@ -112,14 +127,16 @@ export const useChatCall = (user, wsRef, selectedChat) => {
   const hangupCall = useCallback((duration, participants = null) => {
     if (isHangingUpRef.current) return;
     
-    const initialTarget = activeCallRef.current?.target || (isCalling ? selectedChat : null);
+    const initialTargetId = callTargetRef.current || activeCallRef.current?.target;
+    const isGroupCall = isGroupCallRef.current;
+    
     const durVal = typeof duration === 'number' ? duration : null;
 
-    if (initialTarget) {
+    if (initialTargetId) {
       isHangingUpRef.current = true;
       
       // Determine all targets for hangup and logging
-      const allTargets = participants ? [...new Set([...participants, initialTarget])] : [initialTarget];
+      const allTargets = participants ? [...new Set([...participants, initialTargetId])] : [initialTargetId];
 
       allTargets.forEach(target => {
         // Send hangup signal
@@ -128,16 +145,16 @@ export const useChatCall = (user, wsRef, selectedChat) => {
           target: target,
           call_id: activeCallIdRef.current
         }));
-
-        // Persist log for each participant
-        if (activeCallRef.current) {
-          if (activeCallRef.current.isCaller) {
-            persistCallLog(target, activeCallRef.current.type, durVal > 0 ? 'completed' : 'missed', durVal, activeCallRef.current.isCaller);
-          }
-        } else if (isCalling && callError !== 'rejected') {
-          persistCallLog(target, 'voice', 'cancelled', null, true);
-        }
       });
+      
+      // Persist log ONLY ONCE to the appropriate room
+      if (activeCallRef.current) {
+        if (activeCallRef.current.isCaller) {
+          persistCallLog(initialTargetId, activeCallRef.current.type, durVal > 0 ? 'completed' : 'missed', durVal, activeCallRef.current.isCaller, isGroupCall);
+        }
+      } else if (isCalling && callError !== 'rejected') {
+        persistCallLog(initialTargetId, 'voice', 'cancelled', null, true, isGroupCall);
+      }
     }
 
     if (incomingCallTimeoutRef.current) {
@@ -149,6 +166,8 @@ export const useChatCall = (user, wsRef, selectedChat) => {
     setIsCalling(false);
     setCallError(null);
     activeCallIdRef.current = null;
+    callTargetRef.current = null;
+    isGroupCallRef.current = false;
     
     setTimeout(() => {
       isHangingUpRef.current = false;

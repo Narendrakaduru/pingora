@@ -200,7 +200,13 @@ export const useChatSocket = ({
             rejectCall('missed');
           }, 45000);
 
-          setIncomingCall({ from: message.from, type: message.call_type, call_id: message.call_id });
+          setIncomingCall({ 
+            from: message.from, 
+            type: message.call_type, 
+            call_id: message.call_id,
+            is_group_call: message.is_group_call,
+            group_id: message.group_id
+          });
         } else if (message.type === 'call_response') {
            if (message.call_id === activeCallIdRef.current) {
                if (message.accepted) {

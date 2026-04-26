@@ -35,6 +35,8 @@ const Sidebar = ({
 }) => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [showListDropdown, setShowListDropdown] = useState(false);
+  const [overflowingChips, setOverflowingChips] = useState(new Set());
+  const chipContainerRef = React.useRef(null);
   const isArchiveView = activeView === 'archive';
 
   // Collect all unique labels from all chats
@@ -54,7 +56,58 @@ const Sidebar = ({
   const nonArchivedGroups = userGroups.filter(g => !g.settings?.is_archived);
   const unreadCount = nonArchivedPartners.filter(p => checkUnread(p, 'dm')).length + nonArchivedGroups.filter(g => checkUnread(g, 'group')).length;
   const favouritesCount = nonArchivedPartners.filter(p => p.settings?.is_favourite).length + nonArchivedGroups.filter(g => g.settings?.is_favourite).length;
-  const groupsCount = nonArchivedGroups.length;
+  const groupsCount = nonArchivedGroups.filter(g => checkUnread(g, 'group')).length;
+
+  const standardChips = [
+    { id: 'all', label: 'All', count: null },
+    { id: 'unread', label: 'Unread', count: unreadCount },
+    { id: 'favourites', label: 'Favourites', count: favouritesCount },
+    { id: 'groups', label: 'Groups', count: groupsCount }
+  ];
+
+  // Observe which chips are overflowing their container horizontally
+  React.useEffect(() => {
+    if (!chipContainerRef.current) return;
+    
+    const checkOverflow = () => {
+      const container = chipContainerRef.current;
+      if (!container) return;
+      
+      const containerRect = container.getBoundingClientRect();
+      const containerRight = containerRect.right;
+      
+      setOverflowingChips(prev => {
+        const next = new Set(prev);
+        let hasChanges = false;
+        
+        const chips = container.querySelectorAll('.chip-item');
+        chips.forEach(chip => {
+          const chipRect = chip.getBoundingClientRect();
+          // 2px tolerance
+          const isOverflowing = chipRect.right > containerRight + 2; 
+          const id = chip.dataset.id;
+          
+          if (isOverflowing && !next.has(id)) {
+            next.add(id);
+            hasChanges = true;
+          } else if (!isOverflowing && next.has(id)) {
+            next.delete(id);
+            hasChanges = true;
+          }
+        });
+        
+        return hasChanges ? next : prev;
+      });
+    };
+
+    const resizeObserver = new ResizeObserver(checkOverflow);
+    resizeObserver.observe(chipContainerRef.current);
+    
+    checkOverflow();
+    
+    return () => resizeObserver.disconnect();
+  }, [unreadCount, favouritesCount, groupsCount, activeFilter]);
+
 
   const labelColors = {
     'Work': 'bg-blue-500/10 text-blue-600 border-blue-200/50',
@@ -259,21 +312,21 @@ const Sidebar = ({
             />
           </div>
 
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {[
-                { id: 'all', label: 'All', count: null },
-                { id: 'unread', label: 'Unread', count: unreadCount },
-                { id: 'favourites', label: 'Favourites', count: favouritesCount },
-                { id: 'groups', label: 'Groups', count: groupsCount }
-              ].map((chip) => (
+          <div className="flex items-start gap-1 mb-2">
+            <div 
+              ref={chipContainerRef}
+              className="flex-1 flex items-center gap-1 overflow-hidden py-1 whitespace-nowrap"
+            >
+              {standardChips.map((chip) => (
                 <button
                   key={chip.id}
+                  data-id={chip.id}
                   onClick={() => setActiveFilter(chip.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-sm font-bold transition-all shrink-0 border flex items-center gap-2
+                  className={`chip-item px-3.5 py-1.5 rounded-full text-sm font-bold transition-all shrink-0 border flex items-center gap-2
                   ${activeFilter === chip.id 
                     ? 'bg-primary/10 text-primary border-primary/20 shadow-sm shadow-primary/5' 
-                    : 'bg-surface-lowest text-text-soft border-border/10 hover:bg-surface-high hover:border-border/30'}`}
+                    : 'bg-surface-lowest text-text-soft border-border/10 hover:bg-surface-high hover:border-border/30'}
+                  ${overflowingChips.has(chip.id) ? 'opacity-0 pointer-events-none absolute' : ''}`}
                 >
                   {chip.label}
                   {chip.count > 0 && (
@@ -297,6 +350,22 @@ const Sidebar = ({
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowListDropdown(false)} />
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-border/10 z-[100] overflow-hidden py-1">
+                    {standardChips.filter(c => overflowingChips.has(c.id)).map(chip => (
+                      <button
+                        key={`dropdown-${chip.id}`}
+                        onClick={() => { setActiveFilter(chip.id); setShowListDropdown(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-all flex items-center justify-between
+                          ${activeFilter === chip.id ? 'bg-primary/5 text-primary' : 'text-text-main hover:bg-surface-low'}`}
+                      >
+                        {chip.label}
+                        {chip.count > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black border bg-primary text-white border-primary/20">
+                            {chip.count}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                    {overflowingChips.size > 0 && <div className="border-t border-border/10 my-1" />}
                     {allLabels.map(label => (
                       <button
                         key={label}
